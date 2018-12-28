@@ -9,7 +9,7 @@
 
 
 
-### h2 Execute the generated program:
+### Execute the generated program:
 
 `./A_Star_Algorithm ./S_001_Daten_Modified.csv` (or other .csv file)
 
