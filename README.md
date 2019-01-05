@@ -11,6 +11,8 @@
 
 ### Execute the generated program:
 
-`./A_Star_Algorithm ./S_001_Daten_Modified.csv` (or other .csv file)
+`./A_Star_Algorithm ./S_001_Daten_Modified.csv startCoordinateX startCoordinateY goalCoordinateX goalCoordinateY` (or other .csv file)
+
+where 'startCoordinateX' 'startCoordinateY' 'goalCoordinateX' and 'goalCoordinateY' are integer values representing start and goal field in the lab
 
 Currently only running with a cropped .csv file such as the example file 
