@@ -21,12 +21,13 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <stdbool.h>
 
 typedef struct Node {
     struct Node *parent;
     struct Node *successors[4];
     struct Node *next;
-    int distance, g, f, h, x, y, type, index;
+    int distance, g, f, h, x, y, type;
 } NODE;
 
 
@@ -42,11 +43,14 @@ NODE *open_actual, *open_handle, *open_start, *open_end;
 NODE *closed_actual, *closed_handle, *closed_start, *closed_end;
 int startX, startY, goalX, goalY;
 
+bool isDestination(int x, int y);
+
 Lab_p generateLab(FILE *in);
 
 void printLab(Lab_p lab);
 
 void xmalloc_open(void);
+
 void xmalloc_closed(void);
 
 //void fill_list(NODE list);
@@ -54,12 +58,21 @@ void print_list(NODE list, NODE actual, NODE start, NODE end);
 
 int getManhattanDistance(NODE currentNode);
 
-NODE* fillList(int i);
-void printList(NODE* list_actual, NODE* list_start);
+NODE *fillList(int i);
 
-NODE* addList(NODE **list_end, NODE* new_node);
+void printList(NODE *list_actual, NODE *list_start);
+
+NODE *addList(NODE **list_start, NODE *new_node);
 
 void deleteList(NODE **list_start, NODE *delete_node);
+
+bool aStarRun(Lab_p lab, NODE *current_node);
+
+bool isDestination(int x, int y);
+
+NODE *isInList(NODE **list_start, NODE *node);
+
+NODE *findCheapestFNode();
 
 void delay(long milliseconds);
 

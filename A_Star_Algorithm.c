@@ -49,8 +49,6 @@ e) push q on the closed list
 end (while loop)
 */
 
-int nodeIndex = 0;
-
 int main(int argc, char *argv[]) {
     FILE *in = stdin;
     Lab_p lab;
@@ -76,6 +74,7 @@ int main(int argc, char *argv[]) {
     //printLab(lab);
     //printf("\nHeuristic Test Value: %d", heuristicTest);
 
+    /*
     NODE *test, *test2, *test3;
     test = fillList(1);
     test2 = fillList(2);
@@ -87,8 +86,155 @@ int main(int argc, char *argv[]) {
     printf("\n---------");
     deleteList(&open_start, test2);
     printList(open_actual, open_start);
+    */
+    printList(open_actual, open_start);
+
+    aStarRun(lab, open_start);
 
     exit(EXIT_SUCCESS);
+}
+
+/* A* Search Algorithm
+1.  Initialize the open list
+2.  Initialize the closed list
+put the starting node on the open
+list (you can leave its f at zero)
+
+3.  while the open list is not empty
+a) find the node with the least f on
+the open list, call it "q"
+
+b) pop q off the open list
+
+c) generate q's 8 successors and set their
+parents to q
+
+d) for each successor
+i) if successor is the goal, stop search
+successor.g = q.g + distance between
+successor and q
+successor.h = distance from goal to
+successor (This can be done using many
+           ways, we will discuss three heuristics-
+           Manhattan, Diagonal and Euclidean
+           Heuristics)
+
+successor.f = successor.g + successor.h
+
+ii) if a node with the same position as
+successor is in the OPEN list which has a
+lower f than successor, skip this successor
+
+iii) if a node with the same position as
+successor  is in the CLOSED list which has
+a lower f than successor, skip this successor
+otherwise, add  the node to the open list
+end (for loop)
+
+e) push q on the closed list
+end (while loop)
+*/
+
+bool aStarRun(Lab_p lab, NODE *current_node) {
+    xmalloc_open();
+    printList(open_actual, open_start);
+    int i;
+    int f;
+    while (open_start) {
+        current_node->successors[0] = &lab->lab[current_node->x - 1][current_node->y]; // north
+        current_node->successors[0]->parent = current_node;
+        current_node->successors[1] = &lab->lab[current_node->x][current_node->y + 1]; // east
+        current_node->successors[1]->parent = current_node;
+        current_node->successors[2] = &lab->lab[current_node->x + 1][current_node->y]; // south
+        current_node->successors[2]->parent = current_node;
+        current_node->successors[3] = &lab->lab[current_node->x][current_node->y - 1]; // west
+        current_node->successors[3]->parent = current_node;
+        for (i = 0; i < 4; i++) {
+            printf("\nSUCCESSOR %d: X: %d, Y: %d\n", i, current_node->successors[i]->x, current_node->successors[i]->y);
+            if (isDestination(current_node->successors[i]->x, current_node->successors[i]->y)) {
+                printf("Found! Path: blabla, costs: bla");
+                return true;
+            }
+            current_node->successors[i]->g =
+                    current_node->successors[i]->parent->g + current_node->successors[i]->distance;
+            current_node->successors[i]->h = getManhattanDistance(*current_node->successors[i]);
+            current_node->successors[i]->f = current_node->successors[i]->g + current_node->successors[i]->h;
+            printf("F: %d\n", current_node->successors[i]->f);
+            if (!isInList(&closed_start, current_node->successors[i])) {
+                printf("Inside outer if\n");
+                NODE *handle;
+                handle = isInList(&open_start, current_node->successors[i]);
+                printf("Handle f: %d", handle->f);
+                if (handle->f >= current_node->successors[i]->f) {
+                    printf("Inside inner if\n");
+                    deleteList(&open_start, handle);
+                    addList(&open_start, current_node->successors[i]);
+                }
+                printf("Survived inner if\n");
+                if (!isInList(&open_start, current_node->successors[i])) {
+                    printf("Inside second inner if");
+                    addList(&open_start, current_node->successors[i]);
+                }
+                printf("Survived if\n");
+            } else {
+                printf("Is in the closed list\n");
+            }
+        }
+        addList(&closed_start, current_node);
+        //aStarRun(lab, findCheapestFNode());
+    }
+    return false;
+}
+
+bool isDestination(int x, int y) {
+    if (x == goalX && y == goalY) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+NODE *findCheapestFNode() {
+    NODE *handle = open_start;
+    NODE *previousHandle = NULL;
+    int cheapestF = 0;
+    NODE *cheapestNode;
+    while (handle) {
+        if (handle->f <= cheapestF) {
+            cheapestF = handle->f;
+            cheapestNode = handle;
+        } else {
+            printf("Not found");
+        }
+        previousHandle = handle;
+        handle = handle->next;
+    }
+    printf("\nCheapest Node: f %d\nX %d \nY %d",
+           cheapestNode->f, cheapestNode->x, cheapestNode->y);
+    return cheapestNode;
+}
+
+bool *isInList(NODE **list_start, NODE *node) {
+    NODE *handle = *list_start;
+    NODE *previousHandle = NULL;
+    while (handle) {
+        if (handle == node) {
+            if (previousHandle == NULL) {
+                *list_start = handle->next;
+            } else {
+                previousHandle->next = handle->next;
+            }
+            printf("Handle isInList X: %d\n", handle->x);
+            return true;
+        } else {
+            printf("Not found in list\n");
+        }
+        previousHandle = handle;
+        handle = handle->next;
+        printf("Iterating \n");
+    }
+    printf("Returning NULL");
+    return false;
 }
 
 Lab_p generateLab(FILE *in) {
@@ -103,7 +249,7 @@ Lab_p generateLab(FILE *in) {
     char c;
 
     do {
-        printf("Semi counter: %d\n", semi_ctr);
+        //printf("Semi counter: %d\n", semi_ctr);
         c = (char) fgetc(in);
         if (c == '\n') {
             row++;
@@ -111,11 +257,11 @@ Lab_p generateLab(FILE *in) {
             if (handle_max_col > elem->maxcol) elem->maxcol = handle_max_col;
             handle_max_col = 0;
             elem->maxrow++;
-        } else if(c == ';') {
+        } else if (c == ';') {
             semi_ctr++;
-            printf("Semi increasing: %d\n", semi_ctr);
+            //printf("Semi increasing: %d\n", semi_ctr);
         } else if (strchr(BF_VALID, c)) {
-            printf("Character: %c\n", c);
+            //printf("Character: %c\n", c);
             semi_ctr = 0;
             //printf("%c", c);
             NODE handle;
@@ -148,6 +294,8 @@ Lab_p generateLab(FILE *in) {
             handle_max_col++;
         }
     } while (c != EOF && elem->maxcol <= MAXCOLS && elem->maxrow <= MAXROWS && semi_ctr != 14);
+    //open_start = elem->lab[startX][startY];
+    addList(&open_start, &elem->lab[startX][startY]);
     return elem;
 }
 
@@ -198,8 +346,6 @@ void xmalloc_closed(void) {
 }
 
 NODE *addList(NODE **list_start, NODE *new_node) {
-    new_node->index = nodeIndex;
-    nodeIndex++;
     new_node->next = *list_start;
     *list_start = new_node;
     return new_node;
@@ -209,7 +355,7 @@ void deleteList(NODE **list_start, NODE *delete_node) {
     NODE *handle = *list_start;
     NODE *previousHandle = NULL;
     while (handle) {
-        if (handle->index == delete_node->index) {
+        if (handle == delete_node) {
             if (previousHandle == NULL) {
                 *list_start = handle->next;
             } else {
@@ -232,18 +378,18 @@ NODE *fillList(int i) {
     return node;
 }
 
-void printList(NODE* list_actual, NODE* list_start) {
-    printf("\nListe vorwärts ausgeben\n");
+void printList(NODE *list_actual, NODE *list_start) {
+    printf("\nList:\n");
     /* Zeiger auf erstem Element positionieren */
     list_actual = list_start;
     /* Solange es Elemente gibt, also bis momentan==NULL */
     while (list_actual) {
-        printf("\nDistance %d\nIndex %d\n",
-               list_actual->distance, list_actual->index);
+        printf("\nDistance %d, X %d, Y %d\n",
+               list_actual->distance, list_actual->x, list_actual->y);
         /* Zeiger auf nächstem Element positionieren */
         list_actual = list_actual->next;
     }
-    return;
+    printf("Print list done");
 }
 
 void delay(long milliseconds) {
