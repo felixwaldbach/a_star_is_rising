@@ -25,15 +25,14 @@
 typedef struct Node {
     struct Node *parent;
     struct Node *successors[4];
-    struct Node *next, *previous;
-    int distance, g, f, h, x, y, type;
+    struct Node *next;
+    int distance, g, f, h, x, y, type, index;
 } NODE;
 
 
 /* Data type: Labyrinth - ASCII map, costs, direction */
 
-typedef struct labyrinth
-{
+typedef struct labyrinth {
     NODE lab[MAXCOLS][MAXROWS];
     int maxrow;
     int maxcol;
@@ -43,12 +42,25 @@ NODE *open_actual, *open_handle, *open_start, *open_end;
 NODE *closed_actual, *closed_handle, *closed_start, *closed_end;
 int startX, startY, goalX, goalY;
 
-Lab_p generateLab(FILE* in);
+Lab_p generateLab(FILE *in);
+
 void printLab(Lab_p lab);
-void xmalloc(void);
+
+void xmalloc_open(void);
+void xmalloc_closed(void);
+
 //void fill_list(NODE list);
 void print_list(NODE list, NODE actual, NODE start, NODE end);
+
 int getManhattanDistance(NODE currentNode);
+
+NODE* fillList(int i);
+void printList(NODE* list_actual, NODE* list_start);
+
+NODE* addList(NODE **list_end, NODE* new_node);
+
+void deleteList(NODE **list_start, NODE *delete_node);
+
 void delay(long milliseconds);
 
 #endif /* A_Star_Algorithm_h */

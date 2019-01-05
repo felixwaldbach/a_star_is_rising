@@ -49,6 +49,8 @@ e) push q on the closed list
 end (while loop)
 */
 
+int nodeIndex = 0;
+
 int main(int argc, char *argv[]) {
     FILE *in = stdin;
     Lab_p lab;
@@ -70,9 +72,22 @@ int main(int argc, char *argv[]) {
     }
 
     lab = generateLab(in);
-    int heuristicTest = getManhattanDistance(lab->lab[7][7]);
-    printLab(lab);
-    printf("\nHeuristic Test Value: %d", heuristicTest);
+    //int heuristicTest = getManhattanDistance(lab->lab[7][7]);
+    //printLab(lab);
+    //printf("\nHeuristic Test Value: %d", heuristicTest);
+
+    NODE *test, *test2, *test3;
+    test = fillList(1);
+    test2 = fillList(2);
+    test3 = fillList(3);
+    addList(&open_start, test);
+    addList(&open_start, test2);
+    addList(&open_start, test3);
+    printList(open_actual, open_start);
+    printf("\n---------");
+    deleteList(&open_start, test2);
+    printList(open_actual, open_start);
+
     exit(EXIT_SUCCESS);
 }
 
@@ -83,23 +98,26 @@ Lab_p generateLab(FILE *in) {
     int row = 0;
     int col = 0;
     int handle_max_col = 0;
-    int empty_line = 0;
+    int semi_ctr = 0;
 
     char c;
 
     do {
+        printf("Semi counter: %d\n", semi_ctr);
         c = (char) fgetc(in);
         if (c == '\n') {
-            empty_line++;
-            printf("\n");
             row++;
             col = 0;
             if (handle_max_col > elem->maxcol) elem->maxcol = handle_max_col;
             handle_max_col = 0;
             elem->maxrow++;
+        } else if(c == ';') {
+            semi_ctr++;
+            printf("Semi increasing: %d\n", semi_ctr);
         } else if (strchr(BF_VALID, c)) {
-            empty_line = 0;
-            printf("%c", c);
+            printf("Character: %c\n", c);
+            semi_ctr = 0;
+            //printf("%c", c);
             NODE handle;
             handle.type = c;
             handle.x = row;
@@ -129,7 +147,7 @@ Lab_p generateLab(FILE *in) {
             elem->lab[row][col++] = handle;
             handle_max_col++;
         }
-    } while (c != EOF && elem->maxcol <= MAXCOLS && elem->maxrow <= MAXROWS && empty_line < 2);
+    } while (c != EOF && elem->maxcol <= MAXCOLS && elem->maxrow <= MAXROWS && semi_ctr != 14);
     return elem;
 }
 
@@ -159,6 +177,73 @@ void printLab(Lab_p lab) {
 
 int getManhattanDistance(NODE currentNode) {
     return abs(currentNode.x - goalX) + abs(currentNode.y - goalY);
+}
+
+void xmalloc_open(void) {
+    /* Speicher anfordern und Zeiger per Typecast ändern */
+    if ((open_actual = (NODE *) malloc(sizeof(NODE))) == NULL) {
+        printf("\nNo memory available!\n");
+        exit(8);
+    }
+    return;
+}
+
+void xmalloc_closed(void) {
+    /* Speicher anfordern und Zeiger per Typecast ändern */
+    if ((closed_actual = (NODE *) malloc(sizeof(NODE))) == NULL) {
+        printf("\nNo memory available!\n");
+        exit(8);
+    }
+    return;
+}
+
+NODE *addList(NODE **list_start, NODE *new_node) {
+    new_node->index = nodeIndex;
+    nodeIndex++;
+    new_node->next = *list_start;
+    *list_start = new_node;
+    return new_node;
+}
+
+void deleteList(NODE **list_start, NODE *delete_node) {
+    NODE *handle = *list_start;
+    NODE *previousHandle = NULL;
+    while (handle) {
+        if (handle->index == delete_node->index) {
+            if (previousHandle == NULL) {
+                *list_start = handle->next;
+            } else {
+                previousHandle->next = handle->next;
+            }
+            free(handle);
+            return;
+        } else {
+            printf("Not found");
+        }
+        previousHandle = handle;
+        handle = handle->next;
+    }
+}
+
+NODE *fillList(int i) {
+    /* Strukturelemente mit Nutzdaten füllen */
+    NODE *node = malloc(sizeof(NODE));
+    node->distance = i;
+    return node;
+}
+
+void printList(NODE* list_actual, NODE* list_start) {
+    printf("\nListe vorwärts ausgeben\n");
+    /* Zeiger auf erstem Element positionieren */
+    list_actual = list_start;
+    /* Solange es Elemente gibt, also bis momentan==NULL */
+    while (list_actual) {
+        printf("\nDistance %d\nIndex %d\n",
+               list_actual->distance, list_actual->index);
+        /* Zeiger auf nächstem Element positionieren */
+        list_actual = list_actual->next;
+    }
+    return;
 }
 
 void delay(long milliseconds) {
