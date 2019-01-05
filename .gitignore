@@ -1,2 +1,4 @@
 *.o
 astar
+.idea/
+.DS_Store

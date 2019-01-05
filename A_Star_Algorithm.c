@@ -49,50 +49,52 @@ e) push q on the closed list
 end (while loop)
 */
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[]) {
     FILE *in = stdin;
     Lab_p lab;
-    
-    if(argc > 2)
-    {
+
+    if (argc > 6) {
         fprintf(stderr, "Error! Usage: %s [<file>]\n", argv[0]);
         exit(EXIT_FAILURE);
     }
-    if(argc == 2)
-    {
+    if (argc == 6) {
         in = fopen(argv[1], "r");
-        if(!in)
-        {
+        if (!in) {
             perror(argv[0]);
             exit(EXIT_FAILURE);
         }
+        startX = atoi(argv[2]);
+        startY = atoi(argv[3]);
+        goalX = atoi(argv[4]);
+        goalY = atoi(argv[5]);
     }
-    
+
     lab = generateLab(in);
+    int heuristicTest = getManhattanDistance(lab->lab[7][7]);
     printLab(lab);
+    printf("\nHeuristic Test Value: %d", heuristicTest);
     exit(EXIT_SUCCESS);
 }
 
-Lab_p generateLab(FILE* in)
-{
-    Lab_p elem = (LAB*) malloc(sizeof(LAB));
+Lab_p generateLab(FILE *in) {
+    Lab_p elem = (LAB *) malloc(sizeof(LAB));
     elem->maxrow = 0;
     elem->maxcol = 0;
     int row = 0;
     int col = 0;
     int handle_max_col = 0;
     int empty_line = 0;
-    
+
     char c;
-    
+
     do {
-        c = (char)fgetc(in);
-        if(c == '\n') {
+        c = (char) fgetc(in);
+        if (c == '\n') {
             empty_line++;
             printf("\n");
             row++;
-            col=0;
-            if(handle_max_col > elem->maxcol) elem->maxcol = handle_max_col;
+            col = 0;
+            if (handle_max_col > elem->maxcol) elem->maxcol = handle_max_col;
             handle_max_col = 0;
             elem->maxrow++;
         } else if (strchr(BF_VALID, c)) {
@@ -102,7 +104,7 @@ Lab_p generateLab(FILE* in)
             handle.type = c;
             handle.x = row;
             handle.y = col;
-            switch(c) {
+            switch (c) {
                 case '0':
                     handle.distance = TYPE_COSTS_0;
                     break;
@@ -127,30 +129,27 @@ Lab_p generateLab(FILE* in)
             elem->lab[row][col++] = handle;
             handle_max_col++;
         }
-    } while(c != EOF && elem->maxcol<=MAXCOLS && elem->maxrow<=MAXROWS && empty_line<2);
+    } while (c != EOF && elem->maxcol <= MAXCOLS && elem->maxrow <= MAXROWS && empty_line < 2);
     return elem;
 }
 
 
-void printLab(Lab_p lab)
-{
+void printLab(Lab_p lab) {
     system("clear");
     int i, j;
     printf("Lab size: %d x %d\n", lab->maxrow, lab->maxcol);
     printf("LAB TYPES:----------------\n");
-    for(i=0; i<=lab->maxrow; i++)
-    {
-        for(j=0; j<lab->maxcol; j++) {
+    for (i = 0; i <= lab->maxrow; i++) {
+        for (j = 0; j < lab->maxcol; j++) {
             printf("[%d, %d: %c] ", lab->lab[i][j].x, lab->lab[i][j].y, lab->lab[i][j].type);
         }
         printf("|\n");
     }
     printf("LAB COSTS:----------------\n");
-    for(i=0; i<=lab->maxrow; i++)
-    {
+    for (i = 0; i <= lab->maxrow; i++) {
         printf("|");
-        for(j=0; j<lab->maxcol; j++) {
-            if(lab->lab[i][j].distance > 9) printf("%d ", lab->lab[i][j].distance);
+        for (j = 0; j < lab->maxcol; j++) {
+            if (lab->lab[i][j].distance > 9) printf("%d ", lab->lab[i][j].distance);
             else printf("0%d ", lab->lab[i][j].distance);
         }
         printf("|\n");
@@ -158,13 +157,17 @@ void printLab(Lab_p lab)
     delay(100);
 }
 
+int getManhattanDistance(NODE currentNode) {
+    return abs(currentNode.x - goalX) + abs(currentNode.y - goalY);
+}
+
 void delay(long milliseconds) {
     long pause;
-    clock_t now,then;
-    
-    pause = milliseconds*(CLOCKS_PER_SEC/1000);
+    clock_t now, then;
+
+    pause = milliseconds * (CLOCKS_PER_SEC / 1000);
     now = then = clock();
-    while( (now-then) < pause )
+    while ((now - then) < pause)
         now = clock();
 }
 

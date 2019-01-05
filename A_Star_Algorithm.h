@@ -41,12 +41,14 @@ typedef struct labyrinth
 
 NODE *open_actual, *open_handle, *open_start, *open_end;
 NODE *closed_actual, *closed_handle, *closed_start, *closed_end;
+int startX, startY, goalX, goalY;
 
 Lab_p generateLab(FILE* in);
 void printLab(Lab_p lab);
 void xmalloc(void);
 //void fill_list(NODE list);
 void print_list(NODE list, NODE actual, NODE start, NODE end);
+int getManhattanDistance(NODE currentNode);
 void delay(long milliseconds);
 
 #endif /* A_Star_Algorithm_h */
