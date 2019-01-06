@@ -39,7 +39,7 @@ typedef struct labyrinth {
     int maxcol;
 } LAB, *Lab_p;
 
-NODE *open_actual, *open_handle, *open_start, *open_end;
+NODE *momentan, *open_actual, *open_handle, *open_start, *open_end;
 NODE *closed_actual, *closed_handle, *closed_start, *closed_end;
 int startX, startY, goalX, goalY;
 
@@ -48,10 +48,6 @@ bool isDestination(int x, int y);
 Lab_p generateLab(FILE *in);
 
 void printLab(Lab_p lab);
-
-void xmalloc_open(void);
-
-void xmalloc_closed(void);
 
 //void fill_list(NODE list);
 void print_list(NODE list, NODE actual, NODE start, NODE end);
@@ -62,18 +58,26 @@ NODE *fillList(int i);
 
 void printList(NODE *list_actual, NODE *list_start);
 
-NODE *addList(NODE **list_start, NODE *new_node);
-
-void deleteList(NODE **list_start, NODE *delete_node);
-
 bool aStarRun(Lab_p lab, NODE *current_node);
 
 bool isDestination(int x, int y);
 
-NODE *isInList(NODE **list_start, NODE *node);
+bool isInList(NODE **start, int x, int y);
 
-NODE *findCheapestFNode();
+NODE *findCheapestFNode(NODE **start);
 
-void delay(long milliseconds);
+void aStar2();
+
+bool cheaperNode(NODE **list_start, int x, int y, int f);
+
+NODE *findLeastF();
+
+void printNode(NODE *print_node);
+
+void liste_einfuegen_anfang(NODE **start, int distance, int g, int f, int h, int x, int y, int type);
+
+int liste_loeschen_anfang(NODE **start);
+
+int liste_loeschen_wert(NODE **start, int x, int y);
 
 #endif /* A_Star_Algorithm_h */

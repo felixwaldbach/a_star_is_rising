@@ -8,50 +8,10 @@
 #include "A_Star_Algorithm.h"
 #include <stdio.h>
 
-/* A* Search Algorithm
-1.  Initialize the open list
-2.  Initialize the closed list
-put the starting node on the open
-list (you can leave its f at zero)
-
-3.  while the open list is not empty
-a) find the node with the least f on
-the open list, call it "q"
-
-b) pop q off the open list
-
-c) generate q's 8 successors and set their
-parents to q
-
-d) for each successor
-i) if successor is the goal, stop search
-successor.g = q.g + distance between
-successor and q
-successor.h = distance from goal to
-successor (This can be done using many
-           ways, we will discuss three heuristics-
-           Manhattan, Diagonal and Euclidean
-           Heuristics)
-
-successor.f = successor.g + successor.h
-
-ii) if a node with the same position as
-successor is in the OPEN list which has a
-lower f than successor, skip this successor
-
-iii) if a node with the same position as
-successor  is in the CLOSED list which has
-a lower f than successor, skip this successor
-otherwise, add  the node to the open list
-end (for loop)
-
-e) push q on the closed list
-end (while loop)
-*/
+Lab_p lab;
 
 int main(int argc, char *argv[]) {
     FILE *in = stdin;
-    Lab_p lab;
 
     if (argc > 6) {
         fprintf(stderr, "Error! Usage: %s [<file>]\n", argv[0]);
@@ -70,9 +30,6 @@ int main(int argc, char *argv[]) {
     }
 
     lab = generateLab(in);
-    //int heuristicTest = getManhattanDistance(lab->lab[7][7]);
-    //printLab(lab);
-    //printf("\nHeuristic Test Value: %d", heuristicTest);
 
     /*
     NODE *test, *test2, *test3;
@@ -87,9 +44,12 @@ int main(int argc, char *argv[]) {
     deleteList(&open_start, test2);
     printList(open_actual, open_start);
     */
-    printList(open_actual, open_start);
 
-    aStarRun(lab, open_start);
+    printList(open_actual, open_start);
+    aStar2();
+
+    //aStarRun(lab, open_start);
+    //aStar2();
 
     exit(EXIT_SUCCESS);
 }
@@ -135,53 +95,83 @@ e) push q on the closed list
 end (while loop)
 */
 
-bool aStarRun(Lab_p lab, NODE *current_node) {
-    xmalloc_open();
-    printList(open_actual, open_start);
-    int i;
-    int f;
+void aStar2() {
+    printf("Running A Star\n");
     while (open_start) {
-        current_node->successors[0] = &lab->lab[current_node->x - 1][current_node->y]; // north
-        current_node->successors[0]->parent = current_node;
-        current_node->successors[1] = &lab->lab[current_node->x][current_node->y + 1]; // east
-        current_node->successors[1]->parent = current_node;
-        current_node->successors[2] = &lab->lab[current_node->x + 1][current_node->y]; // south
-        current_node->successors[2]->parent = current_node;
-        current_node->successors[3] = &lab->lab[current_node->x][current_node->y - 1]; // west
-        current_node->successors[3]->parent = current_node;
+        int i;
+        printf("Looping through while loop in A Star\n");
+        //Find node with least f on the open list
+        printf("Searching least f\n");
+        NODE *leastF;
+        leastF = malloc(sizeof(NODE));
+        leastF = findCheapestFNode(&open_start);
+        printf("Looking at field: X: %d, Y: %d\n", leastF->x, leastF->y);
+        //Remove it from the open list
+        printf("Deleting least f from open list\n");
+        liste_loeschen_wert(&open_start, leastF->x, leastF->y);
+        //Generate and set its successors
+        printf("Generating successors\n");
+        if (leastF->x - 1 >= 0) {
+            leastF->successors[0] = &lab->lab[leastF->x - 1][leastF->y]; // north
+            leastF->successors[0]->parent = leastF;
+        }
+        if (leastF->y + 1 < lab->maxcol) {
+            leastF->successors[1] = &lab->lab[leastF->x][leastF->y + 1]; // east
+            leastF->successors[1]->parent = leastF;
+        }
+        if (leastF->x + 1 < lab->maxrow) {
+            leastF->successors[2] = &lab->lab[leastF->x + 1][leastF->y]; // south
+            leastF->successors[2]->parent = leastF;
+        }
+        if (leastF->y - 1 >= 0) {
+            leastF->successors[3] = &lab->lab[leastF->x][leastF->y - 1]; // west
+            leastF->successors[3]->parent = leastF;
+        }
+        printf("Accessing for loop for successors now\n");
         for (i = 0; i < 4; i++) {
-            printf("\nSUCCESSOR %d: X: %d, Y: %d\n", i, current_node->successors[i]->x, current_node->successors[i]->y);
-            if (isDestination(current_node->successors[i]->x, current_node->successors[i]->y)) {
-                printf("Found! Path: blabla, costs: bla");
-                return true;
-            }
-            current_node->successors[i]->g =
-                    current_node->successors[i]->parent->g + current_node->successors[i]->distance;
-            current_node->successors[i]->h = getManhattanDistance(*current_node->successors[i]);
-            current_node->successors[i]->f = current_node->successors[i]->g + current_node->successors[i]->h;
-            printf("F: %d\n", current_node->successors[i]->f);
-            if (!isInList(&closed_start, current_node->successors[i])) {
-                printf("Inside outer if\n");
-                NODE *handle;
-                handle = isInList(&open_start, current_node->successors[i]);
-                printf("Handle f: %d", handle->f);
-                if (handle->f >= current_node->successors[i]->f) {
-                    printf("Inside inner if\n");
-                    deleteList(&open_start, handle);
-                    addList(&open_start, current_node->successors[i]);
-                }
-                printf("Survived inner if\n");
-                if (!isInList(&open_start, current_node->successors[i])) {
-                    printf("Inside second inner if");
-                    addList(&open_start, current_node->successors[i]);
-                }
-                printf("Survived if\n");
+            NODE *handle;
+            handle = leastF->successors[i];
+            if (!handle) continue;
+            if (isDestination(handle->x, handle->y)) {
+                printf("Found the goal!! %d, %d\n", handle->x, handle->y);
+                return;
             } else {
-                printf("Is in the closed list\n");
+                printf("Settings successor [%d]'s g,h,f values now\n", i);
+                handle->g = handle->parent->g + handle->distance;
+                handle->h = getManhattanDistance(*handle);
+                handle->f = handle->g + handle->h;
+                if (cheaperNode(&open_start, handle->x, handle->y, handle->f) ||
+                    cheaperNode(&closed_start, handle->x, handle->y, handle->f)) {
+                    printf("Cheaper node is found\n");
+                    continue;
+                } else {
+                    printf("Adding successor to open list\n");
+                    liste_einfuegen_anfang(&open_start, handle->distance, handle->g, handle->f, handle->h, handle->x,
+                                           handle->y, handle->type);
+                }
             }
         }
-        addList(&closed_start, current_node);
-        //aStarRun(lab, findCheapestFNode());
+        printf("End of foor loop reached\n");
+        printf("Looking at field 2: X: %d, Y: %d\n", leastF->x, leastF->y);
+        liste_einfuegen_anfang(&closed_start, leastF->distance, leastF->g, leastF->f, leastF->h, leastF->x, leastF->y,
+                               leastF->type);
+        printf("OPEN LIST: \n");
+        printList(open_actual, open_start);
+        printf("CLOSED LIST: \n");
+        printList(closed_actual, closed_start);
+    }
+}
+
+bool cheaperNode(NODE **list_start, int x, int y, int f) {
+    NODE *handle, *previousHandle;
+    handle = *list_start;
+    previousHandle = NULL;
+    while (handle) {
+        if (handle->x == x && handle->y == y && handle->f < f) {
+            return true;
+        }
+        previousHandle = handle;
+        handle = handle->next;
     }
     return false;
 }
@@ -194,46 +184,49 @@ bool isDestination(int x, int y) {
     }
 }
 
-NODE *findCheapestFNode() {
-    NODE *handle = open_start;
-    NODE *previousHandle = NULL;
-    int cheapestF = 0;
-    NODE *cheapestNode;
-    while (handle) {
-        if (handle->f <= cheapestF) {
-            cheapestF = handle->f;
-            cheapestNode = handle;
-        } else {
-            printf("Not found");
-        }
-        previousHandle = handle;
-        handle = handle->next;
+NODE *findCheapestFNode(NODE **start) {
+    NODE *davor;
+    int f;
+    NODE *returnNode;
+
+    if (*start == NULL) {
+        return NULL;
     }
-    printf("\nCheapest Node: f %d\nX %d \nY %d",
-           cheapestNode->f, cheapestNode->x, cheapestNode->y);
-    return cheapestNode;
+
+    returnNode = *start;
+    f = (*start)->f;
+
+    davor = momentan = (*start)->next;
+    while (momentan) {
+        if (momentan->f < f) {
+            f = momentan->f;
+            returnNode = momentan;
+        }
+        davor = momentan;
+        momentan = momentan->next;
+    }
+    return returnNode;
 }
 
-bool *isInList(NODE **list_start, NODE *node) {
-    NODE *handle = *list_start;
-    NODE *previousHandle = NULL;
-    while (handle) {
-        if (handle == node) {
-            if (previousHandle == NULL) {
-                *list_start = handle->next;
-            } else {
-                previousHandle->next = handle->next;
-            }
-            printf("Handle isInList X: %d\n", handle->x);
-            return true;
-        } else {
-            printf("Not found in list\n");
-        }
-        previousHandle = handle;
-        handle = handle->next;
-        printf("Iterating \n");
+bool isInList(NODE **start, int x, int y) {
+    NODE *davor;
+
+    if (*start == NULL) {
+        return -1;
     }
-    printf("Returning NULL");
+
+    if ((*start)->x == x && (*start)->y == y) {
+        return true;
+    }
+
+    davor = momentan = (*start)->next;
+    while (momentan) {
+        if (momentan->x == x && momentan->y == y) {
+            return true;
+        }
+        davor = momentan;
+        momentan = momentan->next;
+    }
     return false;
 }
 
@@ -264,38 +257,42 @@ Lab_p generateLab(FILE *in) {
             //printf("Character: %c\n", c);
             semi_ctr = 0;
             //printf("%c", c);
-            NODE handle;
-            handle.type = c;
-            handle.x = row;
-            handle.y = col;
+            NODE *handle = malloc(sizeof(NODE));
+            handle->type = c;
+            handle->x = row;
+            handle->y = col;
             switch (c) {
                 case '0':
-                    handle.distance = TYPE_COSTS_0;
+                    handle->distance = TYPE_COSTS_0;
                     break;
                 case '1':
-                    handle.distance = TYPE_COSTS_1;
+                    handle->distance = TYPE_COSTS_1;
                     break;
                 case '2':
-                    handle.distance = TYPE_COSTS_2;
+                    handle->distance = TYPE_COSTS_2;
                     break;
                 case '3':
-                    handle.distance = TYPE_COSTS_3;
+                    handle->distance = TYPE_COSTS_3;
                     break;
                 case '4':
-                    handle.distance = TYPE_COSTS_4;
+                    handle->distance = TYPE_COSTS_4;
                     break;
                 case '5':
-                    handle.distance = TYPE_COSTS_5;
+                    handle->distance = TYPE_COSTS_5;
                     break;
                 default:
                     break;
             }
-            elem->lab[row][col++] = handle;
+            elem->lab[row][col++] = *handle;
             handle_max_col++;
         }
     } while (c != EOF && elem->maxcol <= MAXCOLS && elem->maxrow <= MAXROWS && semi_ctr != 14);
-    //open_start = elem->lab[startX][startY];
-    addList(&open_start, &elem->lab[startX][startY]);
+    int g = 0;
+    int h = getManhattanDistance(elem->lab[startX][startY]);
+    int f = h;
+    printf("Adding start to list\n");
+    liste_einfuegen_anfang(&open_start, elem->lab[startX][startY].distance, g, f, h, elem->lab[startX][startY].x,
+                           elem->lab[startX][startY].y, elem->lab[startX][startY].type);
     return elem;
 }
 
@@ -320,85 +317,81 @@ void printLab(Lab_p lab) {
         }
         printf("|\n");
     }
-    delay(100);
 }
 
 int getManhattanDistance(NODE currentNode) {
     return abs(currentNode.x - goalX) + abs(currentNode.y - goalY);
 }
 
-void xmalloc_open(void) {
-    /* Speicher anfordern und Zeiger per Typecast ändern */
-    if ((open_actual = (NODE *) malloc(sizeof(NODE))) == NULL) {
-        printf("\nNo memory available!\n");
-        exit(8);
-    }
-    return;
-}
-
-void xmalloc_closed(void) {
-    /* Speicher anfordern und Zeiger per Typecast ändern */
-    if ((closed_actual = (NODE *) malloc(sizeof(NODE))) == NULL) {
-        printf("\nNo memory available!\n");
-        exit(8);
-    }
-    return;
-}
-
-NODE *addList(NODE **list_start, NODE *new_node) {
-    new_node->next = *list_start;
-    *list_start = new_node;
-    return new_node;
-}
-
-void deleteList(NODE **list_start, NODE *delete_node) {
-    NODE *handle = *list_start;
-    NODE *previousHandle = NULL;
-    while (handle) {
-        if (handle == delete_node) {
-            if (previousHandle == NULL) {
-                *list_start = handle->next;
-            } else {
-                previousHandle->next = handle->next;
-            }
-            free(handle);
-            return;
-        } else {
-            printf("Not found");
-        }
-        previousHandle = handle;
-        handle = handle->next;
-    }
-}
-
-NODE *fillList(int i) {
-    /* Strukturelemente mit Nutzdaten füllen */
-    NODE *node = malloc(sizeof(NODE));
-    node->distance = i;
-    return node;
-}
-
 void printList(NODE *list_actual, NODE *list_start) {
-    printf("\nList:\n");
-    /* Zeiger auf erstem Element positionieren */
     list_actual = list_start;
-    /* Solange es Elemente gibt, also bis momentan==NULL */
+    printf("Printing list...\n");
     while (list_actual) {
-        printf("\nDistance %d, X %d, Y %d\n",
-               list_actual->distance, list_actual->x, list_actual->y);
-        /* Zeiger auf nächstem Element positionieren */
+        printNode(list_actual);
         list_actual = list_actual->next;
     }
-    printf("Print list done");
 }
 
-void delay(long milliseconds) {
-    long pause;
-    clock_t now, then;
+void printNode(NODE *print_node) {
+    printf("Printing Node: --Distance: %d, g: %d, f: %d, h: %d, x: %d, y: %d--\n",
+           print_node->distance, print_node->g, print_node->f, print_node->h, print_node->x,
+           print_node->y);
+}
 
-    pause = milliseconds * (CLOCKS_PER_SEC / 1000);
-    now = then = clock();
-    while ((now - then) < pause)
-        now = clock();
+void liste_einfuegen_anfang(NODE **start, int distance, int g, int f, int h, int x, int y, int type) {
+    NODE *new_node;
+    new_node = malloc(sizeof(NODE));
+
+    new_node->distance = distance;
+    new_node->g = g;
+    new_node->f = f;
+    new_node->h = h;
+    new_node->x = x;
+    new_node->y = y;
+    new_node->type = type;
+    new_node->next = *start;
+    *start = new_node;
+}
+
+int liste_loeschen_anfang(NODE **start) {
+    int retval = -1;
+    NODE *next_node = NULL;
+
+    if (*start == NULL) {
+        return -1;
+    }
+
+    next_node = (*start)->next;
+    retval = (*start)->x;
+    free(*start);
+    *start = next_node;
+
+    return retval;
+}
+
+int liste_loeschen_wert(NODE **start, int x, int y) {
+    NODE *davor;
+
+    if (*start == NULL) {
+        return -1;
+    }
+
+    if ((*start)->x == x && (*start)->y == y) {
+        return liste_loeschen_anfang(start);
+    }
+
+    davor = momentan = (*start)->next;
+    while (momentan) {
+        if (momentan->x == x && momentan->y == y) {
+            davor->next = momentan->next;
+            //free(momentan);
+            return x;
+        }
+
+
+        davor = momentan;
+        momentan = momentan->next;
+    }
+    return -1;
 }
 
