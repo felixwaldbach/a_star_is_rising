@@ -99,18 +99,14 @@ void aStar2() {
     printf("Running A Star\n");
     while (open_start) {
         int i;
-        printf("Looping through while loop in A Star\n");
         //Find node with least f on the open list
-        printf("Searching least f\n");
         NODE *leastF;
         leastF = malloc(sizeof(NODE));
         leastF = findCheapestFNode(&open_start);
         printf("Looking at field: X: %d, Y: %d\n", leastF->x, leastF->y);
         //Remove it from the open list
-        printf("Deleting least f from open list\n");
         liste_loeschen_wert(&open_start, leastF->x, leastF->y);
         //Generate and set its successors
-        printf("Generating successors\n");
         if (leastF->x - 1 >= 0) {
             leastF->successors[0] = &lab->lab[leastF->x - 1][leastF->y]; // north
             leastF->successors[0]->parent = leastF;
@@ -127,38 +123,34 @@ void aStar2() {
             leastF->successors[3] = &lab->lab[leastF->x][leastF->y - 1]; // west
             leastF->successors[3]->parent = leastF;
         }
-        printf("Accessing for loop for successors now\n");
         for (i = 0; i < 4; i++) {
             NODE *handle;
             handle = leastF->successors[i];
-            if (!handle || isInList(&closed_start, handle->x, handle->y)) continue;
+            if (!handle) continue;
             if (isDestination(handle->x, handle->y)) {
                 printf("Found the goal!! %d, %d\n", handle->x, handle->y);
                 return;
             } else {
-                printf("Settings successor [%d]'s g,h,f values now\n", i);
                 handle->g = handle->parent->g + handle->distance;
                 handle->h = getManhattanDistance(*handle);
                 handle->f = handle->g + handle->h;
                 if (cheaperNode(&open_start, handle->x, handle->y, handle->f) ||
                     cheaperNode(&closed_start, handle->x, handle->y, handle->f)) {
-                    printf("Cheaper node is found\n");
+                    printf("Cheaper node found: %d, %d\n", handle->x, handle->y);
                     continue;
                 } else {
-                    printf("Adding successor to open list\n");
+                    printf("Putting node on open: %d, %d\n", handle->x, handle->y);
                     liste_einfuegen_anfang(&open_start, handle->distance, handle->g, handle->f, handle->h, handle->x,
                                            handle->y, handle->type);
                 }
             }
         }
-        printf("End of foor loop reached\n");
-        printf("Looking at field 2: X: %d, Y: %d\n", leastF->x, leastF->y);
         liste_einfuegen_anfang(&closed_start, leastF->distance, leastF->g, leastF->f, leastF->h, leastF->x, leastF->y,
                                leastF->type);
-        printf("OPEN LIST: \n");
-        printList(open_actual, open_start);
-        printf("CLOSED LIST: \n");
-        printList(closed_actual, closed_start);
+        //printf("OPEN LIST: \n");
+        //printList(open_actual, open_start);
+        //printf("CLOSED LIST: \n");
+        //printList(closed_actual, closed_start);
     }
 }
 
@@ -167,7 +159,7 @@ bool cheaperNode(NODE **list_start, int x, int y, int f) {
     handle = *list_start;
     previousHandle = NULL;
     while (handle) {
-        if (handle->x == x && handle->y == y && handle->f < f) {
+        if (handle->x == x && handle->y == y && handle->f <= f) {
             return true;
         }
         previousHandle = handle;
@@ -363,7 +355,7 @@ int liste_loeschen_anfang(NODE **start) {
 
     next_node = (*start)->next;
     retval = (*start)->x;
-    free(*start);
+    //free(*start);
     *start = next_node;
 
     return retval;
