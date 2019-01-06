@@ -114,6 +114,12 @@ void aStar2() {
             boat = false;
             boatWeight = 0.9;
         }
+        if (isDestination(leastF->x, leastF->y)) {
+            printf("Found the goal!! %d, %d\n", leastF->x, leastF->y);
+            printf("Boats left: %d\n", boat);
+            printPath(leastF);
+            return;
+        }
         //Generate and set its successors
         if (leastF->x - 1 >= 0) {
             leastF->successors[0] = &lab->lab[leastF->x - 1][leastF->y]; // north
@@ -138,39 +144,26 @@ void aStar2() {
             handle->g = handle->parent->g + handle->distance;
             handle->h = getManhattanDistance(*handle);
             handle->f = handle->g + handle->h;
-            if (isDestination(handle->x, handle->y)) {
-                printf("Found the goal!! %d, %d\n", handle->x, handle->y);
-                printf("Boats left: %d\n", boat);
-                printPath(leastF->successors[i]);
-                return;
+            if (cheaperNode(&open_start, handle->x, handle->y, handle->f) ||
+                cheaperNode(&closed_start, handle->x, handle->y, handle->f)) {
+                continue;
             } else {
-                if (cheaperNode(&open_start, handle->x, handle->y, handle->f) ||
-                    cheaperNode(&closed_start, handle->x, handle->y, handle->f)) {
-                    //printf("Cheaper node found: %d, %d\n", handle->x, handle->y);
-                    continue;
-                } else {
-                    //printf("Putting node on open: %d, %d\n", handle->x, handle->y);
-                    liste_einfuegen_anfang(&open_start, handle->distance, handle->g, handle->f, handle->h, handle->x,
-                                           handle->y, handle->type);
-                }
+                liste_einfuegen_anfang(&open_start, handle->distance, handle->g, handle->f, handle->h, handle->x,
+                                       handle->y, handle->type);
             }
+
         }
         liste_einfuegen_anfang(&closed_start, leastF->distance, leastF->g, leastF->f, leastF->h, leastF->x, leastF->y,
                                leastF->type);
-        //printf("OPEN LIST: \n");
-        //printList(open_actual, open_start);
-        //printf("CLOSED LIST: \n");
-        //printList(closed_actual, closed_start);
     }
 }
 
 void printPath(NODE *goal) {
-    if (!goal->parent) {
+    if (!goal) {
         printf("Grandparent reached\n");
         return;
     } else {
         printNode(goal);
-        //printNode(goal->parent);
         printPath(goal->parent);
     }
 
