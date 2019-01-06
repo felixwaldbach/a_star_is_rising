@@ -131,7 +131,7 @@ void aStar2() {
         for (i = 0; i < 4; i++) {
             NODE *handle;
             handle = leastF->successors[i];
-            if (!handle) continue;
+            if (!handle || isInList(&closed_start, handle->x, handle->y)) continue;
             if (isDestination(handle->x, handle->y)) {
                 printf("Found the goal!! %d, %d\n", handle->x, handle->y);
                 return;
