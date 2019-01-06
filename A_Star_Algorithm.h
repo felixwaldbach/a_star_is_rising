@@ -70,7 +70,7 @@ bool aStarRun(Lab_p lab, NODE *current_node);
 
 bool isDestination(int x, int y);
 
-NODE *isInList(NODE **list_start, NODE *node);
+bool *isInList(NODE **list_start, NODE *node);
 
 NODE *findCheapestFNode();
 

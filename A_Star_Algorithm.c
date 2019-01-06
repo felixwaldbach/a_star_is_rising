@@ -8,47 +8,6 @@
 #include "A_Star_Algorithm.h"
 #include <stdio.h>
 
-/* A* Search Algorithm
-1.  Initialize the open list
-2.  Initialize the closed list
-put the starting node on the open
-list (you can leave its f at zero)
-
-3.  while the open list is not empty
-a) find the node with the least f on
-the open list, call it "q"
-
-b) pop q off the open list
-
-c) generate q's 8 successors and set their
-parents to q
-
-d) for each successor
-i) if successor is the goal, stop search
-successor.g = q.g + distance between
-successor and q
-successor.h = distance from goal to
-successor (This can be done using many
-           ways, we will discuss three heuristics-
-           Manhattan, Diagonal and Euclidean
-           Heuristics)
-
-successor.f = successor.g + successor.h
-
-ii) if a node with the same position as
-successor is in the OPEN list which has a
-lower f than successor, skip this successor
-
-iii) if a node with the same position as
-successor  is in the CLOSED list which has
-a lower f than successor, skip this successor
-otherwise, add  the node to the open list
-end (for loop)
-
-e) push q on the closed list
-end (while loop)
-*/
-
 int main(int argc, char *argv[]) {
     FILE *in = stdin;
     Lab_p lab;
@@ -141,6 +100,14 @@ bool aStarRun(Lab_p lab, NODE *current_node) {
     int i;
     int f;
     while (open_start) {
+        /*
+         * Generate all 4 successors of the current cell: north, east, south and west
+         * current: [x][y]
+         * north:   [x-1][y]
+         * east:    [x][y+1]
+         * south:   [x+1][y]
+         * west:    [x][y-1]
+        */
         current_node->successors[0] = &lab->lab[current_node->x - 1][current_node->y]; // north
         current_node->successors[0]->parent = current_node;
         current_node->successors[1] = &lab->lab[current_node->x][current_node->y + 1]; // east
@@ -149,6 +116,8 @@ bool aStarRun(Lab_p lab, NODE *current_node) {
         current_node->successors[2]->parent = current_node;
         current_node->successors[3] = &lab->lab[current_node->x][current_node->y - 1]; // west
         current_node->successors[3]->parent = current_node;
+
+        // Calculate for each successor the g, h and f value
         for (i = 0; i < 4; i++) {
             printf("\nSUCCESSOR %d: X: %d, Y: %d\n", i, current_node->successors[i]->x, current_node->successors[i]->y);
             if (isDestination(current_node->successors[i]->x, current_node->successors[i]->y)) {
@@ -159,25 +128,34 @@ bool aStarRun(Lab_p lab, NODE *current_node) {
                     current_node->successors[i]->parent->g + current_node->successors[i]->distance;
             current_node->successors[i]->h = getManhattanDistance(*current_node->successors[i]);
             current_node->successors[i]->f = current_node->successors[i]->g + current_node->successors[i]->h;
+            printf("G: %d\n", current_node->successors[i]->g);
+            printf("H: %d\n", current_node->successors[i]->h);
             printf("F: %d\n", current_node->successors[i]->f);
+
+            // check if current is in closes_list -> skip
             if (!isInList(&closed_start, current_node->successors[i])) {
                 printf("Inside outer if\n");
+
                 NODE *handle;
                 handle = isInList(&open_start, current_node->successors[i]);
-                printf("Handle f: %d", handle->f);
+                printf("Handle f: %d", handle->f); // Erzeugt error...
+                // check if there is an f in the open list for that successor which is lower than the calc -> skip
                 if (handle->f >= current_node->successors[i]->f) {
                     printf("Inside inner if\n");
                     deleteList(&open_start, handle);
                     addList(&open_start, current_node->successors[i]);
                 }
-                printf("Survived inner if\n");
+                printf("Survived 1. if\n");
+
+                // check if successor is in open_list -> add to the open_list
                 if (!isInList(&open_start, current_node->successors[i])) {
-                    printf("Inside second inner if");
+                    printf("Inside second inner if\n");
                     addList(&open_start, current_node->successors[i]);
                 }
-                printf("Survived if\n");
+                printf("Survived 2. if\n");
+
             } else {
-                printf("Is in the closed list\n");
+                printf("Already in the closed list. Skipping this node...\n");
             }
         }
         addList(&closed_start, current_node);
@@ -204,12 +182,12 @@ NODE *findCheapestFNode() {
             cheapestF = handle->f;
             cheapestNode = handle;
         } else {
-            printf("Not found");
+            printf("Cheapest Node not found");
         }
         previousHandle = handle;
         handle = handle->next;
     }
-    printf("\nCheapest Node: f %d\nX %d \nY %d",
+    printf("\nCheapest Node found: f %d\nX %d \nY %d",
            cheapestNode->f, cheapestNode->x, cheapestNode->y);
     return cheapestNode;
 }
@@ -217,6 +195,7 @@ NODE *findCheapestFNode() {
 bool *isInList(NODE **list_start, NODE *node) {
     NODE *handle = *list_start;
     NODE *previousHandle = NULL;
+
     while (handle) {
         if (handle == node) {
             if (previousHandle == NULL) {
@@ -233,7 +212,8 @@ bool *isInList(NODE **list_start, NODE *node) {
         handle = handle->next;
         printf("Iterating \n");
     }
-    printf("Returning NULL");
+    // Wird ausgeführt, bevor obere while fertig ist...!
+    printf("Returning false\n");
     return false;
 }
 
@@ -389,7 +369,7 @@ void printList(NODE *list_actual, NODE *list_start) {
         /* Zeiger auf nächstem Element positionieren */
         list_actual = list_actual->next;
     }
-    printf("Print list done");
+    printf("Print list done\n");
 }
 
 void delay(long milliseconds) {
