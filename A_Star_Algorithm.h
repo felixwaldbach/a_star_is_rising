@@ -27,7 +27,9 @@ typedef struct Node {
     struct Node *parent;
     struct Node *successors[4];
     struct Node *next;
-    int distance, g, f, h, x, y, type;
+    double distance, g, f, h;
+    int x, y;
+    char type;
 } NODE;
 
 
@@ -42,6 +44,8 @@ typedef struct labyrinth {
 NODE *momentan, *open_actual, *open_handle, *open_start, *open_end;
 NODE *closed_actual, *closed_handle, *closed_start, *closed_end;
 int startX, startY, goalX, goalY;
+bool boat;
+double boatWeight;
 
 bool isDestination(int x, int y);
 
@@ -53,8 +57,6 @@ void printLab(Lab_p lab);
 void print_list(NODE list, NODE actual, NODE start, NODE end);
 
 int getManhattanDistance(NODE currentNode);
-
-NODE *fillList(int i);
 
 void printList(NODE *list_actual, NODE *list_start);
 
@@ -68,16 +70,18 @@ NODE *findCheapestFNode(NODE **start);
 
 void aStar2();
 
-bool cheaperNode(NODE **list_start, int x, int y, int f);
+bool cheaperNode(NODE **list_start, int x, int y, double f);
 
 NODE *findLeastF();
 
 void printNode(NODE *print_node);
 
-void liste_einfuegen_anfang(NODE **start, int distance, int g, int f, int h, int x, int y, int type);
+void liste_einfuegen_anfang(NODE **start, double distance, double g, double f, double h, int x, int y, char type);
 
 int liste_loeschen_anfang(NODE **start);
 
 int liste_loeschen_wert(NODE **start, int x, int y);
+
+void printPath(NODE *goal);
 
 #endif /* A_Star_Algorithm_h */

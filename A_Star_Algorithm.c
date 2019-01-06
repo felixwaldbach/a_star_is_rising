@@ -102,10 +102,18 @@ void aStar2() {
         //Find node with least f on the open list
         NODE *leastF;
         leastF = malloc(sizeof(NODE));
-        leastF = findCheapestFNode(&open_start);
-        printf("Looking at field: X: %d, Y: %d\n", leastF->x, leastF->y);
-        //Remove it from the open list
-        liste_loeschen_wert(&open_start, leastF->x, leastF->y);
+        do {
+            leastF = findCheapestFNode(&open_start);
+            leastF->distance = leastF->distance * boatWeight;
+            printf("X: %d, Y: %d, Distance: %lf\n", leastF->x, leastF->y, leastF->distance);
+            //Remove it from the open list
+            liste_loeschen_wert(&open_start, leastF->x, leastF->y);
+        } while (leastF->type == '1' && !boat);
+        if (leastF->type == '1') {
+            printf("River at %d, %d\n", leastF->x, leastF->y);
+            boat = false;
+            boatWeight = 0.9;
+        }
         //Generate and set its successors
         if (leastF->x - 1 >= 0) {
             leastF->successors[0] = &lab->lab[leastF->x - 1][leastF->y]; // north
@@ -127,19 +135,21 @@ void aStar2() {
             NODE *handle;
             handle = leastF->successors[i];
             if (!handle) continue;
+            handle->g = handle->parent->g + handle->distance;
+            handle->h = getManhattanDistance(*handle);
+            handle->f = handle->g + handle->h;
             if (isDestination(handle->x, handle->y)) {
                 printf("Found the goal!! %d, %d\n", handle->x, handle->y);
+                printf("Boats left: %d\n", boat);
+                printPath(leastF->successors[i]);
                 return;
             } else {
-                handle->g = handle->parent->g + handle->distance;
-                handle->h = getManhattanDistance(*handle);
-                handle->f = handle->g + handle->h;
                 if (cheaperNode(&open_start, handle->x, handle->y, handle->f) ||
                     cheaperNode(&closed_start, handle->x, handle->y, handle->f)) {
-                    printf("Cheaper node found: %d, %d\n", handle->x, handle->y);
+                    //printf("Cheaper node found: %d, %d\n", handle->x, handle->y);
                     continue;
                 } else {
-                    printf("Putting node on open: %d, %d\n", handle->x, handle->y);
+                    //printf("Putting node on open: %d, %d\n", handle->x, handle->y);
                     liste_einfuegen_anfang(&open_start, handle->distance, handle->g, handle->f, handle->h, handle->x,
                                            handle->y, handle->type);
                 }
@@ -154,7 +164,19 @@ void aStar2() {
     }
 }
 
-bool cheaperNode(NODE **list_start, int x, int y, int f) {
+void printPath(NODE *goal) {
+    if (!goal->parent) {
+        printf("Grandparent reached\n");
+        return;
+    } else {
+        printNode(goal);
+        //printNode(goal->parent);
+        printPath(goal->parent);
+    }
+
+}
+
+bool cheaperNode(NODE **list_start, int x, int y, double f) {
     NODE *handle, *previousHandle;
     handle = *list_start;
     previousHandle = NULL;
@@ -178,7 +200,7 @@ bool isDestination(int x, int y) {
 
 NODE *findCheapestFNode(NODE **start) {
     NODE *davor;
-    int f;
+    double f;
     NODE *returnNode;
 
     if (*start == NULL) {
@@ -279,12 +301,14 @@ Lab_p generateLab(FILE *in) {
             handle_max_col++;
         }
     } while (c != EOF && elem->maxcol <= MAXCOLS && elem->maxrow <= MAXROWS && semi_ctr != 14);
-    int g = 0;
-    int h = getManhattanDistance(elem->lab[startX][startY]);
-    int f = h;
+    double g = 0.0;
+    double h = getManhattanDistance(elem->lab[startX][startY]);
+    double f = h;
     printf("Adding start to list\n");
     liste_einfuegen_anfang(&open_start, elem->lab[startX][startY].distance, g, f, h, elem->lab[startX][startY].x,
                            elem->lab[startX][startY].y, elem->lab[startX][startY].type);
+    boat = true;
+    boatWeight = 1.0;
     return elem;
 }
 
@@ -304,8 +328,8 @@ void printLab(Lab_p lab) {
     for (i = 0; i <= lab->maxrow; i++) {
         printf("|");
         for (j = 0; j < lab->maxcol; j++) {
-            if (lab->lab[i][j].distance > 9) printf("%d ", lab->lab[i][j].distance);
-            else printf("0%d ", lab->lab[i][j].distance);
+            if (lab->lab[i][j].distance > 9) printf("%lf ", lab->lab[i][j].distance);
+            else printf("%lf ", lab->lab[i][j].distance);
         }
         printf("|\n");
     }
@@ -325,12 +349,12 @@ void printList(NODE *list_actual, NODE *list_start) {
 }
 
 void printNode(NODE *print_node) {
-    printf("Printing Node: --Distance: %d, g: %d, f: %d, h: %d, x: %d, y: %d--\n",
+    printf("Printing Node: --Distance: %lf, g: %lf, f: %lf, h: %lf, x: %d, y: %d--\n",
            print_node->distance, print_node->g, print_node->f, print_node->h, print_node->x,
            print_node->y);
 }
 
-void liste_einfuegen_anfang(NODE **start, int distance, int g, int f, int h, int x, int y, int type) {
+void liste_einfuegen_anfang(NODE **start, double distance, double g, double f, double h, int x, int y, char type) {
     NODE *new_node;
     new_node = malloc(sizeof(NODE));
 
