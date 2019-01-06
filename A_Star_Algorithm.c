@@ -8,6 +8,8 @@
 #include "A_Star_Algorithm.h"
 #include <stdio.h>
 
+int countSteps = 0;
+
 int main(int argc, char *argv[]) {
     FILE *in = stdin;
     Lab_p lab;
