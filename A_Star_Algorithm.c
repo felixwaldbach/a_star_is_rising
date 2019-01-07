@@ -367,18 +367,18 @@ void printLab(Lab_p lab) {
     int i, j;
     printf("Lab size: %d x %d\n", lab->maxrow, lab->maxcol);
     printf("LAB TYPES:----------------\n");
-    for (i = 0; i <= lab->maxrow; i++) {
-        for (j = 0; j < lab->maxcol; j++) {
-            printf("[%d, %d: %c] ", lab->lab[i][j].x, lab->lab[i][j].y, lab->lab[i][j].type);
+    for (i = 0; i <= lab->maxcol; i++) {
+        for (j = 0; j < lab->maxrow; j++) {
+            printf("[%d, %d: %c] ", lab->lab[j][i].x, lab->lab[j][i].y, lab->lab[j][i].type);
         }
         printf("|\n");
     }
     printf("LAB COSTS:----------------\n");
-    for (i = 0; i <= lab->maxrow; i++) {
+    for (i = 0; i <= lab->maxcol; i++) {
         printf("|");
-        for (j = 0; j < lab->maxcol; j++) {
-            if (lab->lab[i][j].distance > 9) printf("%lf ", lab->lab[i][j].distance);
-            else printf("%lf ", lab->lab[i][j].distance);
+        for (j = 0; j < lab->maxrow; j++) {
+            if (lab->lab[j][i].distance > 9) printf("%lf ", lab->lab[j][i].distance);
+            else printf("%lf ", lab->lab[j][i].distance);
         }
         printf("|\n");
     }
