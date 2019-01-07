@@ -76,7 +76,8 @@ NODE *findLeastF();
 
 void printNode(NODE *print_node);
 
-void liste_einfuegen_anfang(NODE **start, double distance, double g, double f, double h, int x, int y, char type);
+void liste_einfuegen_anfang(NODE **start, double distance, double g, double f, double h, int x, int y, char type,
+                            NODE *parent);
 
 int liste_loeschen_anfang(NODE **start);
 

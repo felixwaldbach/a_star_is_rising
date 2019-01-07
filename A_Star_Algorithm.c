@@ -118,7 +118,9 @@ void aStar2() {
         if (isDestination(leastF->x, leastF->y)) {
             printf("Found the goal!! %d, %d\n", leastF->x, leastF->y);
             printf("Boats left: %d\n", boat);
+            printf("Open list before before while\n");
             printList(open_actual, open_start);
+            printf("Printing path \n");
             printPath(leastF);
             return;
         }
@@ -166,7 +168,6 @@ void aStar2() {
             handle = leastF->successors[i];
 
             if (!handle) continue;
-
             handle->g = handle->parent->g + handle->distance;
             handle->h = getManhattanDistance(*handle);
             handle->f = handle->g + handle->h;
@@ -184,7 +185,7 @@ void aStar2() {
 
                 // Push the successors to the OPEN list
                 liste_einfuegen_anfang(&open_start, handle->distance, handle->g, handle->f, handle->h, handle->x,
-                                       handle->y, handle->type);
+                                       handle->y, handle->type, handle->parent);
             }
         }
 
@@ -194,14 +195,14 @@ void aStar2() {
             liste_loeschen_wert(&closed_start, leastF->x, leastF->y);
         }
         liste_einfuegen_anfang(&closed_start, leastF->distance, leastF->g, leastF->f, leastF->h, leastF->x, leastF->y,
-                               leastF->type);
+                               leastF->type, leastF->parent);
     }
 }
 
 // Function to print the path and cost after the A* algorithm has found the destination
 void printPath(NODE *goal) {
     if (!goal) {
-        printf("Grandparent reached\n");
+        printf("Path reached\n");
         return;
     } else {
         printNode(goal);
@@ -313,8 +314,8 @@ Lab_p generateLab(FILE *in) {
             //printf("%c", c);
             NODE *handle = malloc(sizeof(NODE));
             handle->type = c;
-            handle->x = row;
-            handle->y = col;
+            handle->x = col;
+            handle->y = row;
             switch (c) {
                 case '0':
                     handle->distance = TYPE_COSTS_0;
@@ -337,21 +338,22 @@ Lab_p generateLab(FILE *in) {
                 default:
                     break;
             }
-            elem->lab[row][col++] = *handle;
+            elem->lab[col++][row] = *handle;
             handle_max_col++;
         }
     } while (c != EOF && elem->maxcol <= MAXCOLS && elem->maxrow <= MAXROWS && semi_ctr != 14);
 
     // Calculate g, h and f values for the starting cell
     double g = 0.0;
-    double h = getManhattanDistance(elem->lab[startX][startY]);
+    double h = getManhattanDistance(elem->lab[startX - 1][startY - 1]);
     double f = h;
     printf("Adding start to list\n");
 
     // Initialize the OPEN list
     // Add the starting cell to the OPEN list
-    liste_einfuegen_anfang(&open_start, elem->lab[startX][startY].distance, g, f, h, elem->lab[startX][startY].x,
-                           elem->lab[startX][startY].y, elem->lab[startX][startY].type);
+    liste_einfuegen_anfang(&open_start, elem->lab[startX][startY].distance, g, f, h,
+                           elem->lab[startX][startY].x,
+                           elem->lab[startX][startY].y, elem->lab[startX][startY].type, NULL);
 
     // Enable the usement of the boat to cross the river and set the weight of the boat to 100%
     boat = true;
@@ -405,7 +407,8 @@ void printNode(NODE *print_node) {
 }
 
 // Function to add data to the beginning of a list
-void liste_einfuegen_anfang(NODE **start, double distance, double g, double f, double h, int x, int y, char type) {
+void liste_einfuegen_anfang(NODE **start, double distance, double g, double f, double h, int x, int y, char type,
+                            NODE *parent) {
     NODE *new_node;
     new_node = malloc(sizeof(NODE));
 
@@ -417,6 +420,7 @@ void liste_einfuegen_anfang(NODE **start, double distance, double g, double f, d
     new_node->y = y;
     new_node->type = type;
     new_node->next = *start;
+    new_node->parent = parent;
     *start = new_node;
 }
 
