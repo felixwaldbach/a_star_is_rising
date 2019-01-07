@@ -2,57 +2,9 @@
 //  A_Star_Algorithm.c
 //  
 //
-//  Created by Felix Waldbach on 28.12.18.
+//  Created by Felix Waldbach & Yunus Emre Besogul on 28.12.18.
 //
 
-#include "A_Star_Algorithm.h"
-#include <stdio.h>
-
-Lab_p lab;
-
-int main(int argc, char *argv[]) {
-    FILE *in = stdin;
-
-    if (argc > 6) {
-        fprintf(stderr, "Error! Usage: %s [<file>]\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
-    if (argc == 6) {
-        in = fopen(argv[1], "r");
-        if (!in) {
-            perror(argv[0]);
-            exit(EXIT_FAILURE);
-        }
-        startX = atoi(argv[2]);
-        startY = atoi(argv[3]);
-        goalX = atoi(argv[4]);
-        goalY = atoi(argv[5]);
-    }
-
-    lab = generateLab(in);
-
-    /*
-    NODE *test, *test2, *test3;
-    test = fillList(1);
-    test2 = fillList(2);
-    test3 = fillList(3);
-    addList(&open_start, test);
-    addList(&open_start, test2);
-    addList(&open_start, test3);
-    printList(open_actual, open_start);
-    printf("\n---------");
-    deleteList(&open_start, test2);
-    printList(open_actual, open_start);
-    */
-
-    printList(open_actual, open_start);
-    aStar2();
-
-    //aStarRun(lab, open_start);
-    //aStar2();
-
-    exit(EXIT_SUCCESS);
-}
 
 /* A* Search Algorithm
 1.  Initialize the open list
@@ -95,69 +47,158 @@ e) push q on the closed list
 end (while loop)
 */
 
+
+#include "A_Star_Algorithm.h"
+#include <stdio.h>
+
+Lab_p lab;
+
+int main(int argc, char *argv[]) {
+    // Read .csv-file and set source and destination
+    FILE *in = stdin;
+
+    if (argc > 6) {
+        fprintf(stderr, "Error! Usage: %s [<file>]\n", argv[0]);
+        exit(EXIT_FAILURE);
+    }
+    if (argc == 6) {
+        in = fopen(argv[1], "r");
+        if (!in) {
+            perror(argv[0]);
+            exit(EXIT_FAILURE);
+        }
+        startX = atoi(argv[2]);
+        startY = atoi(argv[3]);
+        goalX = atoi(argv[4]);
+        goalY = atoi(argv[5]);
+    }
+
+    // Generate the 2d array to hold the map
+    lab = generateLab(in);
+
+    // Test print the OPEN list
+    printList(open_actual, open_start);
+
+    // Start the A* search
+    aStar2();
+
+    exit(EXIT_SUCCESS);
+}
+
 void aStar2() {
     printf("Running A Star\n");
+
+    // While the OPEN list is not empty... search for the goal
     while (open_start) {
         int i;
-        //Find node with least f on the open list
+
+        // Find the node with the least f in the OPEN list
         NODE *leastF;
         leastF = malloc(sizeof(NODE));
+        // Check if boat is already used and if the next successor is a river
+        // Skip this successor because boat is already used and not accessable
         do {
             leastF = findCheapestFNode(&open_start);
             leastF->distance = leastF->distance * boatWeight;
             printf("X: %d, Y: %d, Distance: %lf\n", leastF->x, leastF->y, leastF->distance);
-            //Remove it from the open list
+            // Remove this node from the OPEN list due it will be processed
             liste_loeschen_wert(&open_start, leastF->x, leastF->y);
         } while (leastF->type == '1' && !boat);
+
+        // Check if node is river: Means that we will cross the river one time and then never again
         if (leastF->type == '1') {
             printf("River at %d, %d\n", leastF->x, leastF->y);
+            // Disable boat usement and lower the upcoming costs with 10%
             boat = false;
             boatWeight = 0.9;
         }
+
+        // Check if current cell is destination
+        // Stop search if successor is destination and print out the path and cost
         if (isDestination(leastF->x, leastF->y)) {
             printf("Found the goal!! %d, %d\n", leastF->x, leastF->y);
             printf("Boats left: %d\n", boat);
+            printList(open_actual, open_start);
             printPath(leastF);
             return;
         }
-        //Generate and set its successors
+
+        int cheksum;    // int variable to count the successors
+        cheksum = 0;
+
+        // Generate the 4 successors of this cell, only if successor is inside boundaries
+        // Only 4 successors because diagonal is forbidden in this task
+        // Set the parents
+
         if (leastF->x - 1 >= 0) {
             leastF->successors[0] = &lab->lab[leastF->x - 1][leastF->y]; // north
             leastF->successors[0]->parent = leastF;
+            cheksum++;
         }
         if (leastF->y + 1 < lab->maxcol) {
             leastF->successors[1] = &lab->lab[leastF->x][leastF->y + 1]; // east
             leastF->successors[1]->parent = leastF;
+            cheksum++;
         }
         if (leastF->x + 1 < lab->maxrow) {
             leastF->successors[2] = &lab->lab[leastF->x + 1][leastF->y]; // south
             leastF->successors[2]->parent = leastF;
+            cheksum++;
         }
         if (leastF->y - 1 >= 0) {
             leastF->successors[3] = &lab->lab[leastF->x][leastF->y - 1]; // west
             leastF->successors[3]->parent = leastF;
+            cheksum++;
         }
-        for (i = 0; i < 4; i++) {
+
+        // For each successor, calculate its g, h and f value and add it to the OPEN list
+        // 1. If a node with the same position as the successor is in the OPEN list,
+        // compare the f value, and continue with the node that has a lower f value
+        // -> Delete from OPEN list and add to OPEN list
+        // 2. If a node with the same position as the succesor is in the CLOSED list,
+        // compare the f value and continue with the node that has a lower f value
+        // -> Delete from CLOSED list and put to OPEN list
+
+        // Aus OPEN und CLOSED Liste müssen noch paar Sachen gelöscht werden
+
+        for (i = 0; i < cheksum; i++) {
             NODE *handle;
             handle = leastF->successors[i];
+
             if (!handle) continue;
+
             handle->g = handle->parent->g + handle->distance;
             handle->h = getManhattanDistance(*handle);
             handle->f = handle->g + handle->h;
+
+            // Skip succesor if node is OPEN list and has a lower f OR skip if node is in CLOSED list and has a lower f
             if (cheaperNode(&open_start, handle->x, handle->y, handle->f) ||
                 cheaperNode(&closed_start, handle->x, handle->y, handle->f)) {
                 continue;
             } else {
+                // Successor is not in OPEN or CLOSED list or has a lower f...
+                // Delete old one from OPEN list
+                if (isInList(&open_start, handle->x, handle->y)) {
+                    liste_loeschen_wert(&open_start, handle->x, handle->y);
+                }
+
+                // Push the successors to the OPEN list
                 liste_einfuegen_anfang(&open_start, handle->distance, handle->g, handle->f, handle->h, handle->x,
                                        handle->y, handle->type);
             }
+        }
 
+        // Push the processed node to the CLOSED list
+        // Initialize the CLOSED list
+        if (isInList(&closed_start, leastF->x, leastF->y)) {
+            liste_loeschen_wert(&closed_start, leastF->x, leastF->y);
         }
         liste_einfuegen_anfang(&closed_start, leastF->distance, leastF->g, leastF->f, leastF->h, leastF->x, leastF->y,
                                leastF->type);
     }
 }
 
+// Function to print the path and cost after the A* algorithm has found the destination
 void printPath(NODE *goal) {
     if (!goal) {
         printf("Grandparent reached\n");
@@ -166,14 +207,15 @@ void printPath(NODE *goal) {
         printNode(goal);
         printPath(goal->parent);
     }
-
 }
 
+// Function to check if there is a node with a cheaper f
 bool cheaperNode(NODE **list_start, int x, int y, double f) {
     NODE *handle, *previousHandle;
     handle = *list_start;
     previousHandle = NULL;
     while (handle) {
+        // If there is a cheaper f, return true
         if (handle->x == x && handle->y == y && handle->f <= f) {
             return true;
         }
@@ -183,6 +225,7 @@ bool cheaperNode(NODE **list_start, int x, int y, double f) {
     return false;
 }
 
+// Function to check if destination is reached
 bool isDestination(int x, int y) {
     if (x == goalX && y == goalY) {
         return true;
@@ -191,6 +234,7 @@ bool isDestination(int x, int y) {
     }
 }
 
+// Function to find the cheapest node in the OPEN lsit
 NODE *findCheapestFNode(NODE **start) {
     NODE *davor;
     double f;
@@ -215,6 +259,7 @@ NODE *findCheapestFNode(NODE **start) {
     return returnNode;
 }
 
+// Function to check if a node is either in the OPEN or CLOSED list
 bool isInList(NODE **start, int x, int y) {
     NODE *davor;
 
@@ -237,6 +282,7 @@ bool isInList(NODE **start, int x, int y) {
     return false;
 }
 
+// Function to generate the 2d array
 Lab_p generateLab(FILE *in) {
     Lab_p elem = (LAB *) malloc(sizeof(LAB));
     elem->maxrow = 0;
@@ -248,6 +294,7 @@ Lab_p generateLab(FILE *in) {
 
     char c;
 
+    // Analyze the map and read its values
     do {
         //printf("Semi counter: %d\n", semi_ctr);
         c = (char) fgetc(in);
@@ -294,18 +341,25 @@ Lab_p generateLab(FILE *in) {
             handle_max_col++;
         }
     } while (c != EOF && elem->maxcol <= MAXCOLS && elem->maxrow <= MAXROWS && semi_ctr != 14);
+
+    // Calculate g, h and f values for the starting cell
     double g = 0.0;
     double h = getManhattanDistance(elem->lab[startX][startY]);
     double f = h;
     printf("Adding start to list\n");
+
+    // Initialize the OPEN list
+    // Add the starting cell to the OPEN list
     liste_einfuegen_anfang(&open_start, elem->lab[startX][startY].distance, g, f, h, elem->lab[startX][startY].x,
                            elem->lab[startX][startY].y, elem->lab[startX][startY].type);
+
+    // Enable the usement of the boat to cross the river and set the weight of the boat to 100%
     boat = true;
     boatWeight = 1.0;
     return elem;
 }
 
-
+// Function to print the map as a 2d array with its values
 void printLab(Lab_p lab) {
     system("clear");
     int i, j;
@@ -328,10 +382,12 @@ void printLab(Lab_p lab) {
     }
 }
 
+// Approximation Heuristics calculation to calculate h
 int getManhattanDistance(NODE currentNode) {
     return abs(currentNode.x - goalX) + abs(currentNode.y - goalY);
 }
 
+// Function to print a list
 void printList(NODE *list_actual, NODE *list_start) {
     list_actual = list_start;
     printf("Printing list...\n");
@@ -341,12 +397,14 @@ void printList(NODE *list_actual, NODE *list_start) {
     }
 }
 
+// Function to print the values from the structure
 void printNode(NODE *print_node) {
     printf("Printing Node: --Distance: %lf, g: %lf, f: %lf, h: %lf, x: %d, y: %d--\n",
            print_node->distance, print_node->g, print_node->f, print_node->h, print_node->x,
            print_node->y);
 }
 
+// Function to add data to the beginning of a list
 void liste_einfuegen_anfang(NODE **start, double distance, double g, double f, double h, int x, int y, char type) {
     NODE *new_node;
     new_node = malloc(sizeof(NODE));
@@ -362,6 +420,7 @@ void liste_einfuegen_anfang(NODE **start, double distance, double g, double f, d
     *start = new_node;
 }
 
+// Function to delete the first input in a list
 int liste_loeschen_anfang(NODE **start) {
     int retval = -1;
     NODE *next_node = NULL;
@@ -378,6 +437,7 @@ int liste_loeschen_anfang(NODE **start) {
     return retval;
 }
 
+// Function to delete a specific data in a list
 int liste_loeschen_wert(NODE **start, int x, int y) {
     NODE *davor;
 
