@@ -32,57 +32,54 @@ typedef struct Node {
     char type;
 } NODE;
 
-
-/* Data type: Labyrinth - ASCII map, costs, direction */
-
 typedef struct labyrinth {
     NODE lab[MAXCOLS][MAXROWS];
     int maxrow;
     int maxcol;
 } LAB, *Lab_p;
 
-NODE *momentan, *open_actual, *open_handle, *open_start, *open_end;
-NODE *closed_actual, *closed_handle, *closed_start, *closed_end;
+Lab_p lab;
+
+NODE *actual, *open_actual, *open_handle, *open_start;
+
+NODE *closed_actual, *closed_handle, *closed_start;
+
 int startX, startY, goalX, goalY;
+
 bool boat;
 double boatWeight;
 
-bool isDestination(int x, int y);
+void runAStar();
 
+/* Lab functions */
 Lab_p generateLab(FILE *in);
 
 void printLab(Lab_p lab);
 
-//void fill_list(NODE list);
-void print_list(NODE list, NODE actual, NODE start, NODE end);
-
-int getManhattanDistance(NODE currentNode);
-
-void printList(NODE *list_actual, NODE *list_start);
-
-bool aStarRun(Lab_p lab, NODE *current_node);
-
-bool isDestination(int x, int y);
-
-bool isInList(NODE **start, int x, int y);
-
-NODE *findCheapestFNode(NODE **start);
-
-void aStar2();
+/* Node functions */
+void printPath(NODE *goal);
 
 bool cheaperNode(NODE **list_start, int x, int y, double f);
 
-NODE *findLeastF();
+bool isDestination(int x, int y);
+
+NODE *findCheapestFNode(NODE **start);
+
+bool isInList(NODE **start, int x, int y);
+
+int getManhattanDistance(NODE currentNode);
 
 void printNode(NODE *print_node);
 
-void liste_einfuegen_anfang(NODE **start, double distance, double g, double f, double h, int x, int y, char type,
-                            NODE *parent);
+/* List functions */
+void printList(NODE *list_actual, NODE *list_start);
 
-int liste_loeschen_anfang(NODE **start);
 
-int liste_loeschen_wert(NODE **start, int x, int y);
+void addToList(NODE **start, double distance, double g, double f, double h, int x, int y, char type,
+               NODE *parent);
 
-void printPath(NODE *goal);
+int removeStartFromList(NODE **start);
+
+int removePositionFromList(NODE **start, int x, int y);
 
 #endif /* A_Star_Algorithm_h */

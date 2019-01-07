@@ -51,8 +51,6 @@ end (while loop)
 #include "A_Star_Algorithm.h"
 #include <stdio.h>
 
-Lab_p lab;
-
 int main(int argc, char *argv[]) {
     // Read .csv-file and set source and destination
     FILE *in = stdin;
@@ -80,12 +78,12 @@ int main(int argc, char *argv[]) {
     printList(open_actual, open_start);
 
     // Start the A* search
-    aStar2();
+    runAStar();
 
     exit(EXIT_SUCCESS);
 }
 
-void aStar2() {
+void runAStar() {
     printf("Running A Star\n");
 
     // While the OPEN list is not empty... search for the goal
@@ -102,7 +100,7 @@ void aStar2() {
             leastF->distance = leastF->distance * boatWeight;
             printf("X: %d, Y: %d, Distance: %lf\n", leastF->x, leastF->y, leastF->distance);
             // Remove this node from the OPEN list due it will be processed
-            liste_loeschen_wert(&open_start, leastF->x, leastF->y);
+            removePositionFromList(&open_start, leastF->x, leastF->y);
         } while (leastF->type == '1' && !boat);
 
         // Check if node is river: Means that we will cross the river one time and then never again
@@ -160,8 +158,6 @@ void aStar2() {
         // compare the f value and continue with the node that has a lower f value
         // -> Delete from CLOSED list and put to OPEN list
 
-        // Aus OPEN und CLOSED Liste müssen noch paar Sachen gelöscht werden
-
         for (i = 0; i < cheksum; i++) {
             NODE *handle;
             handle = leastF->successors[i];
@@ -179,108 +175,23 @@ void aStar2() {
                 // Successor is not in OPEN or CLOSED list or has a lower f...
                 // Delete old one from OPEN list
                 if (isInList(&open_start, handle->x, handle->y)) {
-                    liste_loeschen_wert(&open_start, handle->x, handle->y);
+                    removePositionFromList(&open_start, handle->x, handle->y);
                 }
 
                 // Push the successors to the OPEN list
-                liste_einfuegen_anfang(&open_start, handle->distance, handle->g, handle->f, handle->h, handle->x,
-                                       handle->y, handle->type, handle->parent);
+                addToList(&open_start, handle->distance, handle->g, handle->f, handle->h, handle->x,
+                          handle->y, handle->type, handle->parent);
             }
         }
 
         // Push the processed node to the CLOSED list
         // Initialize the CLOSED list
         if (isInList(&closed_start, leastF->x, leastF->y)) {
-            liste_loeschen_wert(&closed_start, leastF->x, leastF->y);
+            removePositionFromList(&closed_start, leastF->x, leastF->y);
         }
-        liste_einfuegen_anfang(&closed_start, leastF->distance, leastF->g, leastF->f, leastF->h, leastF->x, leastF->y,
-                               leastF->type, leastF->parent);
+        addToList(&closed_start, leastF->distance, leastF->g, leastF->f, leastF->h, leastF->x, leastF->y,
+                  leastF->type, leastF->parent);
     }
-}
-
-// Function to print the path and cost after the A* algorithm has found the destination
-void printPath(NODE *goal) {
-    if (!goal) {
-        printf("Nothing\n");
-        return;
-    } else {
-        printf("X: %d, Y: %d <- ", goal->x, goal->y);
-        //printNode(goal);
-        printPath(goal->parent);
-    }
-}
-
-// Function to check if there is a node with a cheaper f
-bool cheaperNode(NODE **list_start, int x, int y, double f) {
-    NODE *handle, *previousHandle;
-    handle = *list_start;
-    previousHandle = NULL;
-    while (handle) {
-        // If there is a cheaper f, return true
-        if (handle->x == x && handle->y == y && handle->f <= f) {
-            return true;
-        }
-        previousHandle = handle;
-        handle = handle->next;
-    }
-    return false;
-}
-
-// Function to check if destination is reached
-bool isDestination(int x, int y) {
-    if (x == goalX && y == goalY) {
-        return true;
-    } else {
-        return false;
-    }
-}
-
-// Function to find the cheapest node in the OPEN lsit
-NODE *findCheapestFNode(NODE **start) {
-    NODE *davor;
-    double f;
-    NODE *returnNode;
-
-    if (*start == NULL) {
-        return NULL;
-    }
-
-    returnNode = *start;
-    f = (*start)->f;
-
-    davor = momentan = (*start)->next;
-    while (momentan) {
-        if (momentan->f < f) {
-            f = momentan->f;
-            returnNode = momentan;
-        }
-        davor = momentan;
-        momentan = momentan->next;
-    }
-    return returnNode;
-}
-
-// Function to check if a node is either in the OPEN or CLOSED list
-bool isInList(NODE **start, int x, int y) {
-    NODE *davor;
-
-    if (*start == NULL) {
-        return -1;
-    }
-
-    if ((*start)->x == x && (*start)->y == y) {
-        return true;
-    }
-
-    davor = momentan = (*start)->next;
-    while (momentan) {
-        if (momentan->x == x && momentan->y == y) {
-            return true;
-        }
-        davor = momentan;
-        momentan = momentan->next;
-    }
-    return false;
 }
 
 // Function to generate the 2d array
@@ -351,9 +262,9 @@ Lab_p generateLab(FILE *in) {
 
     // Initialize the OPEN list
     // Add the starting cell to the OPEN list
-    liste_einfuegen_anfang(&open_start, elem->lab[startX][startY].distance, g, f, h,
-                           elem->lab[startX][startY].x,
-                           elem->lab[startX][startY].y, elem->lab[startX][startY].type, NULL);
+    addToList(&open_start, elem->lab[startX][startY].distance, g, f, h,
+              elem->lab[startX][startY].x,
+              elem->lab[startX][startY].y, elem->lab[startX][startY].type, NULL);
 
     // Enable the usement of the boat to cross the river and set the weight of the boat to 100%
     boat = true;
@@ -384,9 +295,101 @@ void printLab(Lab_p lab) {
     }
 }
 
+
+// Function to print the path and cost after the A* algorithm has found the destination
+void printPath(NODE *goal) {
+    if (!goal) {
+        printf("Start\n");
+        return;
+    } else {
+        printf("X: %d, Y: %d <- ", goal->x, goal->y);
+        printPath(goal->parent);
+    }
+}
+
+// Function to check if there is a node with a cheaper f
+bool cheaperNode(NODE **list_start, int x, int y, double f) {
+    NODE *handle, *previousHandle;
+    handle = *list_start;
+    previousHandle = NULL;
+    while (handle) {
+        // If there is a cheaper f, return true
+        if (handle->x == x && handle->y == y && handle->f <= f) {
+            return true;
+        }
+        previousHandle = handle;
+        handle = handle->next;
+    }
+    return false;
+}
+
+// Function to check if destination is reached
+bool isDestination(int x, int y) {
+    if (x == goalX && y == goalY) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+// Function to find the cheapest node in the OPEN lsit
+NODE *findCheapestFNode(NODE **start) {
+    NODE *previous;
+    double f;
+    NODE *returnNode;
+
+    if (*start == NULL) {
+        return NULL;
+    }
+
+    returnNode = *start;
+    f = (*start)->f;
+
+    previous = actual = (*start)->next;
+    while (actual) {
+        if (actual->f < f) {
+            f = actual->f;
+            returnNode = actual;
+        }
+        previous = actual;
+        actual = actual->next;
+    }
+    return returnNode;
+}
+
+// Function to check if a node is either in the OPEN or CLOSED list
+bool isInList(NODE **start, int x, int y) {
+    NODE *previous;
+
+    if (*start == NULL) {
+        return -1;
+    }
+
+    if ((*start)->x == x && (*start)->y == y) {
+        return true;
+    }
+
+    previous = actual = (*start)->next;
+    while (actual) {
+        if (actual->x == x && actual->y == y) {
+            return true;
+        }
+        previous = actual;
+        actual = actual->next;
+    }
+    return false;
+}
+
 // Approximation Heuristics calculation to calculate h
 int getManhattanDistance(NODE currentNode) {
     return abs(currentNode.x - goalX) + abs(currentNode.y - goalY);
+}
+
+// Function to print the values from the structure
+void printNode(NODE *print_node) {
+    printf("Printing Node: --Distance: %lf, g: %lf, f: %lf, h: %lf, x: %d, y: %d--\n",
+           print_node->distance, print_node->g, print_node->f, print_node->h, print_node->x,
+           print_node->y);
 }
 
 // Function to print a list
@@ -399,16 +402,9 @@ void printList(NODE *list_actual, NODE *list_start) {
     }
 }
 
-// Function to print the values from the structure
-void printNode(NODE *print_node) {
-    printf("Printing Node: --Distance: %lf, g: %lf, f: %lf, h: %lf, x: %d, y: %d--\n",
-           print_node->distance, print_node->g, print_node->f, print_node->h, print_node->x,
-           print_node->y);
-}
-
 // Function to add data to the beginning of a list
-void liste_einfuegen_anfang(NODE **start, double distance, double g, double f, double h, int x, int y, char type,
-                            NODE *parent) {
+void addToList(NODE **start, double distance, double g, double f, double h, int x, int y, char type,
+               NODE *parent) {
     NODE *new_node;
     new_node = malloc(sizeof(NODE));
 
@@ -425,7 +421,7 @@ void liste_einfuegen_anfang(NODE **start, double distance, double g, double f, d
 }
 
 // Function to delete the first input in a list
-int liste_loeschen_anfang(NODE **start) {
+int removeStartFromList(NODE **start) {
     int retval = -1;
     NODE *next_node = NULL;
 
@@ -442,28 +438,28 @@ int liste_loeschen_anfang(NODE **start) {
 }
 
 // Function to delete a specific data in a list
-int liste_loeschen_wert(NODE **start, int x, int y) {
-    NODE *davor;
+int removePositionFromList(NODE **start, int x, int y) {
+    NODE *previous;
 
     if (*start == NULL) {
         return -1;
     }
 
     if ((*start)->x == x && (*start)->y == y) {
-        return liste_loeschen_anfang(start);
+        return removeStartFromList(start);
     }
 
-    davor = momentan = (*start)->next;
-    while (momentan) {
-        if (momentan->x == x && momentan->y == y) {
-            davor->next = momentan->next;
+    previous = actual = (*start)->next;
+    while (actual) {
+        if (actual->x == x && actual->y == y) {
+            previous->next = actual->next;
             //free(momentan);
             return x;
         }
 
 
-        davor = momentan;
-        momentan = momentan->next;
+        previous = actual;
+        actual = actual->next;
     }
     return -1;
 }
