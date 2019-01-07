@@ -118,10 +118,9 @@ void aStar2() {
         if (isDestination(leastF->x, leastF->y)) {
             printf("Found the goal!! %d, %d\n", leastF->x, leastF->y);
             printf("Boats left: %d\n", boat);
-            printf("Open list before before while\n");
-            printList(open_actual, open_start);
             printf("Printing path \n");
             printPath(leastF);
+            printf("Costs: %lf\n", leastF->g);
             return;
         }
 
@@ -202,10 +201,11 @@ void aStar2() {
 // Function to print the path and cost after the A* algorithm has found the destination
 void printPath(NODE *goal) {
     if (!goal) {
-        printf("Path reached\n");
+        printf("Nothing\n");
         return;
     } else {
-        printNode(goal);
+        printf("X: %d, Y: %d <- ", goal->x, goal->y);
+        //printNode(goal);
         printPath(goal->parent);
     }
 }
