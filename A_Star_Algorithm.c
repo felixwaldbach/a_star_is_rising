@@ -77,7 +77,7 @@ int main(int argc, char *argv[]) {
     // Test print the OPEN list
     printList(open_actual, open_start);
 
-    // Start the A* search
+    // Run the A* search
     runAStar();
 
     exit(EXIT_SUCCESS);
@@ -94,7 +94,7 @@ void runAStar() {
         NODE *leastF;
         leastF = malloc(sizeof(NODE));
         // Check if boat is already used and if the next successor is a river
-        // Skip this successor because boat is already used and not accessable
+        // Skip this successor because boat is already used and not accessable anymore
         do {
             leastF = findCheapestFNode(&open_start);
             leastF->distance = leastF->distance * boatWeight;
@@ -167,7 +167,7 @@ void runAStar() {
             handle->h = getManhattanDistance(*handle);
             handle->f = handle->g + handle->h;
 
-            // Skip succesor if node is OPEN list and has a lower f OR skip if node is in CLOSED list and has a lower f
+            // Skip successor if node is in OPEN list and has a lower f OR skip if node is in CLOSED list and has a lower f
             if (cheaperNode(&open_start, handle->x, handle->y, handle->f) ||
                 cheaperNode(&closed_start, handle->x, handle->y, handle->f)) {
                 continue;
@@ -194,7 +194,9 @@ void runAStar() {
     }
 }
 
-// Function to generate the 2d array
+// Function to generate the 2d array dynamically
+// X-Axis max is 14 (0...14)
+// Y-Axis max is 14 (0...14)
 Lab_p generateLab(FILE *in) {
     Lab_p elem = (LAB *) malloc(sizeof(LAB));
     elem->maxrow = 0;
@@ -266,7 +268,7 @@ Lab_p generateLab(FILE *in) {
               elem->lab[startX][startY].x,
               elem->lab[startX][startY].y, elem->lab[startX][startY].type, NULL);
 
-    // Enable the usement of the boat to cross the river and set the weight of the boat to 100%
+    // Enable the usement of the boat to cross the river and set the weight of the boat to 100% on the start
     boat = true;
     boatWeight = 1.0;
     return elem;
@@ -332,7 +334,7 @@ bool isDestination(int x, int y) {
     }
 }
 
-// Function to find the cheapest node in the OPEN lsit
+// Function to find and return the cheapest node in the OPEN list
 NODE *findCheapestFNode(NODE **start) {
     NODE *previous;
     double f;
@@ -357,7 +359,7 @@ NODE *findCheapestFNode(NODE **start) {
     return returnNode;
 }
 
-// Function to check if a node is either in the OPEN or CLOSED list
+// Function to check if a node is in a  list
 bool isInList(NODE **start, int x, int y) {
     NODE *previous;
 
@@ -380,7 +382,7 @@ bool isInList(NODE **start, int x, int y) {
     return false;
 }
 
-// Approximation Heuristics calculation to calculate h
+// Approximation Heuristics calculation for h
 int getManhattanDistance(NODE currentNode) {
     return abs(currentNode.x - goalX) + abs(currentNode.y - goalY);
 }
@@ -456,8 +458,6 @@ int removePositionFromList(NODE **start, int x, int y) {
             //free(momentan);
             return x;
         }
-
-
         previous = actual;
         actual = actual->next;
     }

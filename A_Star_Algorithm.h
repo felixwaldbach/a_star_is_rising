@@ -2,7 +2,7 @@
 //  A_Star_Algorithm.h
 //  
 //
-//  Created by Felix Waldbach on 28.12.18.
+//  Created by Felix Waldbach & Yunus Emre Besogul on 28.12.18.
 //
 
 #ifndef A_Star_Algorithm_h
