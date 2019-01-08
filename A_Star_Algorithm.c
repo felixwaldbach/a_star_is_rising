@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
     //printList(open_actual, open_start);
 
     // Run the A* search
-    //runAStar();
+    runAStar();
     //printLab(lab);
 
     exit(EXIT_SUCCESS);
@@ -269,11 +269,11 @@ Lab_p generateLab(FILE *in) {
 
     int costsCtr;
     for (costsCtr = 0; costsCtr < 8; costsCtr++) {
-        printf("%s\n", costs[costsCtr]);
+        printf("saveToCosts: %d %s\n", costsCtr, costs[costsCtr]);
     }
 
     addCostsToLab(elem);
-    printLab(elem);
+    //printLab(elem);
 
     // Calculate g, h and f values for the starting cell
     double g = 0.0;
@@ -302,40 +302,42 @@ void addCostsToLab(Lab_p lab) {
     int i, j;
     for (i = 0; i < lab->maxcol; i++) {
         for (j = 0; j < lab->maxrow; j++) {
+
+            // Skip index 0 and 1 because they are used for description and empty row
             int index, cost;
             switch (lab->lab[j][i].type) {
                 case '0':
-                    index = 0;
-                    cost = atoi(costs[index]);
-                    lab->lab[j][i].distance = cost;
-                    printf("distance: %d\n", cost);
-                    break;
-                case '1':
-                    index = 1;
-                    cost = atoi(costs[index]);
-                    lab->lab[j][i].distance = cost;
-                    printf("distance: %lf\n", lab->lab[j][i].distance);
-                    break;
-                case '2':
                     index = 2;
                     cost = atoi(costs[index]);
                     lab->lab[j][i].distance = cost;
                     printf("distance: %lf\n", lab->lab[j][i].distance);
                     break;
-                case '3':
+                case '1':
                     index = 3;
                     cost = atoi(costs[index]);
                     lab->lab[j][i].distance = cost;
                     printf("distance: %lf\n", lab->lab[j][i].distance);
                     break;
-                case '4':
+                case '2':
                     index = 4;
                     cost = atoi(costs[index]);
                     lab->lab[j][i].distance = cost;
                     printf("distance: %lf\n", lab->lab[j][i].distance);
                     break;
-                case '5':
+                case '3':
                     index = 5;
+                    cost = atoi(costs[index]);
+                    lab->lab[j][i].distance = cost;
+                    printf("distance: %lf\n", lab->lab[j][i].distance);
+                    break;
+                case '4':
+                    index = 6;
+                    cost = atoi(costs[index]);
+                    lab->lab[j][i].distance = cost;
+                    printf("distance: %lf\n", lab->lab[j][i].distance);
+                    break;
+                case '5':
+                    index = 7;
                     cost = atoi(costs[index]);
                     lab->lab[j][i].distance = cost;
                     printf("distance: %lf\n", lab->lab[j][i].distance);
