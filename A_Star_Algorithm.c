@@ -197,6 +197,9 @@ void runAStar() {
 // Function to generate the 2d array dynamically
 // X-Axis max is 14 (0...14)
 // Y-Axis max is 14 (0...14)
+// First 15 rows are map
+// Then empty row
+// Then the meanings about the map: Code, Designation, Costs
 Lab_p generateLab(FILE *in) {
     Lab_p elem = (LAB *) malloc(sizeof(LAB));
     elem->maxrow = 0;
