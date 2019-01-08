@@ -48,11 +48,17 @@ int startX, startY, goalX, goalY;
 
 bool boat;
 double boatWeight;
+char costs[8][3];
+int typeCosts[8];
 
 void runAStar();
 
 /* Lab functions */
 Lab_p generateLab(FILE *in);
+
+void saveToCosts(char c, int x, int y);
+
+void addCostsToLab(Lab_p lab);
 
 void printLab(Lab_p lab);
 

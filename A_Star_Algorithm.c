@@ -1,6 +1,6 @@
 //
 //  A_Star_Algorithm.c
-//  
+//
 //
 //  Created by Felix Waldbach & Yunus Emre Besogul on 28.12.18.
 //
@@ -75,10 +75,11 @@ int main(int argc, char *argv[]) {
     lab = generateLab(in);
 
     // Test print the OPEN list
-    printList(open_actual, open_start);
+    //printList(open_actual, open_start);
 
     // Run the A* search
-    runAStar();
+    //runAStar();
+    //printLab(lab);
 
     exit(EXIT_SUCCESS);
 }
@@ -232,32 +233,47 @@ Lab_p generateLab(FILE *in) {
             handle->type = c;
             handle->x = col;
             handle->y = row;
-            switch (c) {
-                case '0':
-                    handle->distance = TYPE_COSTS_0;
-                    break;
-                case '1':
-                    handle->distance = TYPE_COSTS_1;
-                    break;
-                case '2':
-                    handle->distance = TYPE_COSTS_2;
-                    break;
-                case '3':
-                    handle->distance = TYPE_COSTS_3;
-                    break;
-                case '4':
-                    handle->distance = TYPE_COSTS_4;
-                    break;
-                case '5':
-                    handle->distance = TYPE_COSTS_5;
-                    break;
-                default:
-                    break;
-            }
             elem->lab[col++][row] = *handle;
             handle_max_col++;
         }
-    } while (c != EOF && elem->maxcol <= MAXCOLS && elem->maxrow <= MAXROWS && semi_ctr != 14);
+    } while (c != EOF && elem->maxcol <= MAXCOLS && elem->maxrow <= MAXROWS && row < MAXROWS);
+
+    char read[512];
+    char save[10][512];
+    int line = 0, ctr, bla;
+
+    while (fgets(read, 512, in) != NULL) {
+        strcpy(save[line], read);
+        line++;
+    }
+    for (ctr = 2; ctr <= line; ctr++) {
+        int k, semictr;
+        for (k = 0; k < strlen(save[ctr]); k++) {
+            if (save[ctr][k] == ';') {
+                semictr++;
+            }
+            if (semictr == 2) {
+                bla = 0;
+                printf("--\n");
+                while (save[ctr][k + 1] != ';') {
+                    saveToCosts(save[ctr][k + 1], ctr, bla);
+                    printf("%c\n", save[ctr][k + 1]);
+                    bla++;
+                    k++;
+                }
+                break;
+            }
+        }
+        semictr = 0;
+    }
+
+    int costsCtr;
+    for (costsCtr = 0; costsCtr < 8; costsCtr++) {
+        printf("%s\n", costs[costsCtr]);
+    }
+
+    addCostsToLab(elem);
+    printLab(elem);
 
     // Calculate g, h and f values for the starting cell
     double g = 0.0;
@@ -277,20 +293,74 @@ Lab_p generateLab(FILE *in) {
     return elem;
 }
 
+void saveToCosts(char c, int x, int y) {
+    costs[x][y] = c;
+}
+
+// Function to print the map as a 2d array with its values
+void addCostsToLab(Lab_p lab) {
+    int i, j;
+    for (i = 0; i < lab->maxcol; i++) {
+        for (j = 0; j < lab->maxrow; j++) {
+            int index, cost;
+            switch (lab->lab[j][i].type) {
+                case '0':
+                    index = 0;
+                    cost = atoi(costs[index]);
+                    lab->lab[j][i].distance = cost;
+                    printf("distance: %d\n", cost);
+                    break;
+                case '1':
+                    index = 1;
+                    cost = atoi(costs[index]);
+                    lab->lab[j][i].distance = cost;
+                    printf("distance: %lf\n", lab->lab[j][i].distance);
+                    break;
+                case '2':
+                    index = 2;
+                    cost = atoi(costs[index]);
+                    lab->lab[j][i].distance = cost;
+                    printf("distance: %lf\n", lab->lab[j][i].distance);
+                    break;
+                case '3':
+                    index = 3;
+                    cost = atoi(costs[index]);
+                    lab->lab[j][i].distance = cost;
+                    printf("distance: %lf\n", lab->lab[j][i].distance);
+                    break;
+                case '4':
+                    index = 4;
+                    cost = atoi(costs[index]);
+                    lab->lab[j][i].distance = cost;
+                    printf("distance: %lf\n", lab->lab[j][i].distance);
+                    break;
+                case '5':
+                    index = 5;
+                    cost = atoi(costs[index]);
+                    lab->lab[j][i].distance = cost;
+                    printf("distance: %lf\n", lab->lab[j][i].distance);
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
 // Function to print the map as a 2d array with its values
 void printLab(Lab_p lab) {
     system("clear");
     int i, j;
     printf("Lab size: %d x %d\n", lab->maxrow, lab->maxcol);
     printf("LAB TYPES:----------------\n");
-    for (i = 0; i <= lab->maxcol; i++) {
+    for (i = 0; i < lab->maxcol; i++) {
         for (j = 0; j < lab->maxrow; j++) {
             printf("[%d, %d: %c] ", lab->lab[j][i].x, lab->lab[j][i].y, lab->lab[j][i].type);
         }
         printf("|\n");
     }
     printf("LAB COSTS:----------------\n");
-    for (i = 0; i <= lab->maxcol; i++) {
+    for (i = 0; i < lab->maxcol; i++) {
         printf("|");
         for (j = 0; j < lab->maxrow; j++) {
             if (lab->lab[j][i].distance > 9) printf("%lf ", lab->lab[j][i].distance);
