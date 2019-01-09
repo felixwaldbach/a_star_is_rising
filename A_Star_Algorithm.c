@@ -6,48 +6,6 @@
 //
 
 
-/* A* Search Algorithm
-1.  Initialize the open list
-2.  Initialize the closed list
-put the starting node on the open
-list (you can leave its f at zero)
-
-3.  while the open list is not empty
-a) find the node with the least f on
-the open list, call it "q"
-
-b) pop q off the open list
-
-c) generate q's 8 successors and set their
-parents to q
-
-d) for each successor
-i) if successor is the goal, stop search
-successor.g = q.g + distance between
-successor and q
-successor.h = distance from goal to
-successor (This can be done using many
-           ways, we will discuss three heuristics-
-           Manhattan, Diagonal and Euclidean
-           Heuristics)
-
-successor.f = successor.g + successor.h
-
-ii) if a node with the same position as
-successor is in the OPEN list which has a
-lower f than successor, skip this successor
-
-iii) if a node with the same position as
-successor  is in the CLOSED list which has
-a lower f than successor, skip this successor
-otherwise, add  the node to the open list
-end (for loop)
-
-e) push q on the closed list
-end (while loop)
-*/
-
-
 #include "A_Star_Algorithm.h"
 #include <stdio.h>
 
@@ -74,18 +32,14 @@ int main(int argc, char *argv[]) {
     // Generate the 2d array to hold the map
     lab = generateLab(in);
 
-    // Test print the OPEN list
-    //printList(open_actual, open_start);
-
     // Run the A* search
     runAStar();
-    //printLab(lab);
 
     exit(EXIT_SUCCESS);
 }
 
 void runAStar() {
-    printf("Running A Star\n");
+    printf("Running A Star...\n");
 
     // While the OPEN list is not empty... search for the goal
     while (open_start) {
@@ -99,14 +53,14 @@ void runAStar() {
         do {
             leastF = findCheapestFNode(&open_start);
             leastF->distance = leastF->distance * boatWeight;
-            printf("X: %d, Y: %d, Distance: %lf\n", leastF->x, leastF->y, leastF->distance);
+            //printf("X: %d, Y: %d, Distance: %lf\n", leastF->x, leastF->y, leastF->distance);
             // Remove this node from the OPEN list due it will be processed
             removePositionFromList(&open_start, leastF->x, leastF->y);
         } while (leastF->type == '1' && !boat);
 
         // Check if node is river: Means that we will cross the river one time and then never again
         if (leastF->type == '1') {
-            printf("River at %d, %d\n", leastF->x, leastF->y);
+            printf("River at %d, %d -> Using boat!\n", leastF->x, leastF->y);
             // Disable boat usement and lower the upcoming costs with 10%
             boat = false;
             boatWeight = 0.9;
@@ -115,11 +69,11 @@ void runAStar() {
         // Check if current cell is destination
         // Stop search if successor is destination and print out the path and cost
         if (isDestination(leastF->x, leastF->y)) {
-            printf("Found the goal!! %d, %d\n", leastF->x, leastF->y);
-            printf("Boats left: %d\n", boat);
-            printf("Printing path \n");
+            printf("Found the goal -> %d, %d\n", leastF->x, leastF->y);
+            printf("Printing path... \n");
             printPath(leastF);
-            printf("Costs: %lf\n", leastF->g);
+            printf("Printing costs... \n");
+            printf("%.2lf\n", leastF->g);
             return;
         }
 
@@ -240,7 +194,7 @@ Lab_p generateLab(FILE *in) {
 
     char read[512];
     char save[10][512];
-    int line = 0, ctr, bla;
+    int line = 0, ctr, y;
 
     while (fgets(read, 512, in) != NULL) {
         strcpy(save[line], read);
@@ -253,12 +207,11 @@ Lab_p generateLab(FILE *in) {
                 semictr++;
             }
             if (semictr == 2) {
-                bla = 0;
-                printf("--\n");
+                y = 0;
                 while (save[ctr][k + 1] != ';') {
-                    saveToCosts(save[ctr][k + 1], ctr, bla);
-                    printf("%c\n", save[ctr][k + 1]);
-                    bla++;
+                    saveToCosts(save[ctr][k + 1], ctr, y);
+                    //printf("%c\n", save[ctr][k + 1]);
+                    y++;
                     k++;
                 }
                 break;
@@ -267,19 +220,12 @@ Lab_p generateLab(FILE *in) {
         semictr = 0;
     }
 
-    int costsCtr;
-    for (costsCtr = 0; costsCtr < 8; costsCtr++) {
-        printf("saveToCosts: %d %s\n", costsCtr, costs[costsCtr]);
-    }
-
     addCostsToLab(elem);
-    //printLab(elem);
 
     // Calculate g, h and f values for the starting cell
     double g = 0.0;
     double h = getManhattanDistance(elem->lab[startX - 1][startY - 1]);
     double f = h;
-    printf("Adding start to list\n");
 
     // Initialize the OPEN list
     // Add the starting cell to the OPEN list
@@ -310,37 +256,31 @@ void addCostsToLab(Lab_p lab) {
                     index = 2;
                     cost = atoi(costs[index]);
                     lab->lab[j][i].distance = cost;
-                    printf("distance: %lf\n", lab->lab[j][i].distance);
                     break;
                 case '1':
                     index = 3;
                     cost = atoi(costs[index]);
                     lab->lab[j][i].distance = cost;
-                    printf("distance: %lf\n", lab->lab[j][i].distance);
                     break;
                 case '2':
                     index = 4;
                     cost = atoi(costs[index]);
                     lab->lab[j][i].distance = cost;
-                    printf("distance: %lf\n", lab->lab[j][i].distance);
                     break;
                 case '3':
                     index = 5;
                     cost = atoi(costs[index]);
                     lab->lab[j][i].distance = cost;
-                    printf("distance: %lf\n", lab->lab[j][i].distance);
                     break;
                 case '4':
                     index = 6;
                     cost = atoi(costs[index]);
                     lab->lab[j][i].distance = cost;
-                    printf("distance: %lf\n", lab->lab[j][i].distance);
                     break;
                 case '5':
                     index = 7;
                     cost = atoi(costs[index]);
                     lab->lab[j][i].distance = cost;
-                    printf("distance: %lf\n", lab->lab[j][i].distance);
                     break;
                 default:
                     break;
