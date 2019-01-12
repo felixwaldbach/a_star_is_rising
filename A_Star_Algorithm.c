@@ -54,14 +54,16 @@ void runAStar() {
             leastF = findCheapestFNode(&open_start);
             leastF->distance = leastF->distance * boatWeight;
             //printf("X: %d, Y: %d, Distance: %lf\n", leastF->x, leastF->y, leastF->distance);
-            // Remove this node from the OPEN list due it will be processed
+
+            // Remove this node from the OPEN list
             removePositionFromList(&open_start, leastF->x, leastF->y);
         } while (leastF->type == '1' && !boat);
 
-        // Check if node is river: Means that we will cross the river one time and then never again
+        // Check if node is river: cross the river one time and then never again
         if (leastF->type == '1') {
             printf("River at %d, %d -> Using boat!\n", leastF->x, leastF->y);
-            // Disable boat usement and lower the upcoming costs with 10%
+
+            // Disable boat use and lower the upcoming costs with 10%
             boat = false;
             boatWeight = 0.9;
         }
@@ -139,11 +141,11 @@ void runAStar() {
             }
         }
 
-        // Push the processed node to the CLOSED list
-        // Initialize the CLOSED list
+        // Remove the processed node from CLOSED list if already present
         if (isInList(&closed_start, leastF->x, leastF->y)) {
             removePositionFromList(&closed_start, leastF->x, leastF->y);
         }
+        // Push the processed node to the CLOSED list
         addToList(&closed_start, leastF->distance, leastF->g, leastF->f, leastF->h, leastF->x, leastF->y,
                   leastF->type, leastF->parent);
     }
@@ -157,18 +159,19 @@ void runAStar() {
 // Then the meanings about the map: Code, Designation, Costs
 Lab_p generateLab(FILE *in) {
     Lab_p elem = (LAB *) malloc(sizeof(LAB));
+
     elem->maxrow = 0;
     elem->maxcol = 0;
+
     int row = 0;
     int col = 0;
+
     int handle_max_col = 0;
-    int semi_ctr = 0;
 
     char c;
 
     // Analyze the map and read its values
     do {
-        //printf("Semi counter: %d\n", semi_ctr);
         c = (char) fgetc(in);
         if (c == '\n') {
             row++;
@@ -176,13 +179,7 @@ Lab_p generateLab(FILE *in) {
             if (handle_max_col > elem->maxcol) elem->maxcol = handle_max_col;
             handle_max_col = 0;
             elem->maxrow++;
-        } else if (c == ';') {
-            semi_ctr++;
-            //printf("Semi increasing: %d\n", semi_ctr);
         } else if (strchr(BF_VALID, c)) {
-            //printf("Character: %c\n", c);
-            semi_ctr = 0;
-            //printf("%c", c);
             NODE *handle = malloc(sizeof(NODE));
             handle->type = c;
             handle->x = col;
@@ -210,7 +207,6 @@ Lab_p generateLab(FILE *in) {
                 y = 0;
                 while (save[ctr][k + 1] != ';') {
                     saveToCosts(save[ctr][k + 1], ctr, y);
-                    //printf("%c\n", save[ctr][k + 1]);
                     y++;
                     k++;
                 }
@@ -291,7 +287,7 @@ void addCostsToLab(Lab_p lab) {
 
 // Function to print the map as a 2d array with its values
 void printLab(Lab_p lab) {
-    system("clear");
+    //system("clear");
     int i, j;
     printf("Lab size: %d x %d\n", lab->maxrow, lab->maxcol);
     printf("LAB TYPES:----------------\n");

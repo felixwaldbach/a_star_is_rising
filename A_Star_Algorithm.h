@@ -10,12 +10,6 @@
 #define MAXCOLS  15
 #define MAXROWS  15
 #define BF_VALID "012345"
-#define TYPE_COSTS_0 3
-#define TYPE_COSTS_1 5
-#define TYPE_COSTS_2 1
-#define TYPE_COSTS_3 4
-#define TYPE_COSTS_4 2
-#define TYPE_COSTS_5 20
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -40,9 +34,8 @@ typedef struct labyrinth {
 
 Lab_p lab;
 
-NODE *actual, *open_actual, *open_handle, *open_start;
-
-NODE *closed_actual, *closed_handle, *closed_start;
+NODE *actual, *open_handle, *open_start;
+NODE *closed_handle, *closed_start;
 
 int startX, startY, goalX, goalY;
 
